@@ -83,7 +83,7 @@
                                         1
                                     </div>
                                 </label>
-                                <label class="cursor-pointer flex-1 group">
+                                <label class="cursor-pointer flex-1">
                                     <input type="radio" name="buyers" :value="2" x-model.number="buyersCount" @change="calculate()" class="peer sr-only">
                                     <div class="px-4 py-3 rounded-xl border border-slate-200 peer-checked:border-ht-accent peer-checked:bg-ht-accent/5 transition-all text-center text-sm font-bold text-slate-600 peer-checked:text-ht-navy group-hover:border-ht-navy/30">
                                         2
@@ -95,8 +95,8 @@
                     </div>
                 </div>
 
-                {{-- Informação Compradores (Apenas HPP) --}}
-                <div x-show="purpose === 'hpp'" x-transition class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                {{-- Informação Compradores (AGORA VISÍVEL SEMPRE) --}}
+                <div x-transition class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
                     <h3 class="text-xl font-bold text-ht-navy border-b border-slate-100 pb-4 mb-6 flex items-center gap-3">
                         <span class="bg-ht-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
                         Informação relativa aos compradores
@@ -120,7 +120,7 @@
                                         <div class="group relative cursor-help">
                                             <span class="bg-slate-200 text-slate-500 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">?</span>
                                             <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-ht-navy text-white text-xs p-2 rounded hidden group-hover:block z-20 text-center shadow-lg">
-                                                Até 35 anos e 1ª habitação própria permanente.
+                                                Até 35 anos e 1ª habitação própria permanente. **Apenas aplicado se a finalidade for HPP.**
                                             </div>
                                         </div>
                                     </div>
@@ -149,7 +149,7 @@
                                         <div class="group relative cursor-help">
                                             <span class="bg-slate-200 text-slate-500 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">?</span>
                                             <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-ht-navy text-white text-xs p-2 rounded hidden group-hover:block z-20 text-center shadow-lg">
-                                                Até 35 anos e 1ª habitação própria permanente.
+                                                Até 35 anos e 1ª habitação própria permanente. **Apenas aplicado se a finalidade for HPP.**
                                             </div>
                                         </div>
                                     </div>
@@ -186,8 +186,50 @@
 
                         <div class="flex justify-between items-start mb-6 border-b border-white/10 pb-4 relative z-10">
                             <h3 class="text-xl font-bold text-white tracking-tight">Resultados</h3>
+                            
+                            {{-- Botão de Transparência do Cálculo (NOVO) --}}
+                            <button @click="showBreakdown = !showBreakdown" class="text-xs font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-1 uppercase">
+                                <svg x-show="!showBreakdown" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01"/></svg>
+                                <svg x-show="showBreakdown" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span x-text="showBreakdown ? 'Fechar Detalhes' : 'Detalhes do Cálculo'"></span>
+                            </button>
                         </div>
 
+                        {{-- Seção de Detalhes do Cálculo (Transparência) (NOVO) --}}
+                        <div x-show="showBreakdown" x-transition:enter.duration.300ms x-transition:leave.duration.300ms class="bg-white/5 p-4 mb-6 rounded-2xl border border-white/10 text-xs relative z-10">
+                            <h4 class="font-bold mb-3 text-ht-accent uppercase tracking-wider">Transparência do Cálculo (IMT)</h4>
+                            
+                            <div class="space-y-1 text-slate-300">
+                                <div class="flex justify-between">
+                                    <span>Valor Escritura / VPT</span>
+                                    <span class="font-bold">€ <span x-text="formatMoney(imtBreakdown.taxableValue)"></span></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Número de Adquirentes</span>
+                                    <span class="font-bold" x-text="buyersCount"></span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 text-slate-300 mt-4 border-t border-white/10 pt-3">
+                                <p class="font-bold text-sm text-white mb-2" x-text="'Regra IMT Aplicada: ' + imtBreakdown.rateText"></p>
+                                
+                                <template x-if="imtBreakdown.isJovemBenefit && imtBreakdown.isMarginal">
+                                    <p class="text-slate-400">IMT Jovem: Aplicado 8% sobre o excedente a <span x-text="formatMoney(imtBreakdown.marginalExemption) + '€'"></span>.</p>
+                                </template>
+                                
+                                <div x-show="imtBreakdown.rateText.includes('Progressiva')" class="text-slate-400">
+                                    Cálculo: (Valor Aquisição x Taxa Marginal) - Parcela a Abater.
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between text-white border-t border-white/10 pt-3 mt-3">
+                                <span class="font-bold">IMT Total (Soma das Quotas)</span>
+                                <span class="font-black text-ht-accent">€ <span x-text="formatMoney(imtBreakdown.finalIMT)"></span></span>
+                            </div>
+                            
+                        </div>
+                        
+                        {{-- Resultados Principais --}}
                         <div class="space-y-5 relative z-10">
                             <div class="flex justify-between items-center text-sm font-medium">
                                 <span class="text-slate-400">IMT</span>
@@ -195,7 +237,7 @@
                             </div>
                             
                             <div class="flex justify-between items-center text-sm font-medium border-b border-white/10 pb-5">
-                                <span class="text-slate-400">Imposto de Selo</span>
+                                <span class="text-slate-400">Imposto de Selo (0.8%)</span>
                                 <span class="font-bold text-lg">€ <span x-text="formatMoney(finalStamp)"></span></span>
                             </div>
 
@@ -225,11 +267,11 @@
         return {
             location: 'continente',
             purpose: 'hpp',
-            propertyValue: '',
+            propertyValue: 250000,
             buyersCount: 1,
             
-            buyer1Age: '',
-            buyer1Eligible: false,
+            buyer1Age: 30, 
+            buyer1Eligible: true,
             
             buyer2Age: '',
             buyer2Eligible: false,
@@ -237,6 +279,20 @@
             finalIMT: 0,
             finalStamp: 0,
             totalPayable: 0,
+            
+            // Variáveis de Transparência (NOVAS)
+            imtBreakdown: {
+                taxableValue: 0,
+                rateText: 'N/A',
+                abatement: 0,
+                finalIMT: 0,
+                isJovemBenefit: false,
+                isMarginal: false,
+                marginalExemption: 0,
+                marginalRate: 0,
+            },
+            showBreakdown: false,
+            // Fim Variáveis Novas
 
             setBuyerEligible(buyerIndex, value) {
                 if (buyerIndex === 1) this.buyer1Eligible = value;
@@ -355,48 +411,87 @@
                     this.finalIMT = 0;
                     this.finalStamp = 0;
                     this.totalPayable = 0;
+                    this.imtBreakdown = { taxableValue: 0, rateText: 'N/A', abatement: 0, finalIMT: 0, isJovemBenefit: false, isMarginal: false, marginalExemption: 0, marginalRate: 0 };
                     return;
                 }
 
                 let imtBaseNormal = 0;
                 let rateSelo = 0.008; 
+                let isHPP = this.purpose === 'hpp';
+                let isContinente = this.location === 'continente';
+                let imtBreakdownText = '';
 
-                // 1. Determinar Taxas Normais (Sem Jovem)
+                // 1. Determinar Taxas Normais (Sem Jovem) e Breakdown Text
                 if (this.purpose === 'rustico') {
                     imtBaseNormal = valorTotal * 0.05;
+                    imtBreakdownText = '5% (Taxa Única) sobre o valor total';
                 } else if (this.purpose === 'urbano') {
                     imtBaseNormal = valorTotal * 0.065;
+                    imtBreakdownText = '6.5% (Taxa Única) sobre o valor total';
                 } else if (this.purpose === 'offshore_pessoal' || this.purpose === 'offshore_entidade') {
                     imtBaseNormal = valorTotal * 0.10;
                     rateSelo = 0.10; 
+                    imtBreakdownText = '10% (Taxa de Paraíso Fiscal) sobre o valor total';
                 } else {
-                    let tabela = '';
-                    if (this.purpose === 'hpp') {
-                        tabela = this.location === 'continente' ? 'hpp_continente' : 'hpp_ilhas';
-                    } else {
-                        tabela = this.location === 'continente' ? 'secundaria_continente' : 'secundaria_ilhas';
-                    }
+                    let tabela = isHPP ? 
+                                (isContinente ? 'hpp_continente' : 'hpp_ilhas') : 
+                                (isContinente ? 'secundaria_continente' : 'secundaria_ilhas');
+                    
                     imtBaseNormal = this.calculateNormalIMT(valorTotal, tabela);
+                    
+                    imtBreakdownText = isHPP ? 'Tabela Progressiva HPP Normal' : 'Tabela Progressiva Habitação Secundária';
                 }
 
                 // 2. Determinar IMT se fosse 100% Jovem (Apenas se HPP)
                 let imtBaseJovem = imtBaseNormal;
                 let seloBaseJovem = valorTotal * rateSelo;
+                let isJovemBenefitApplied = false;
+                let youngBuyersCount = 0;
+                
+                // Variáveis para Quota IMT Jovem
+                const isBuyer1Eligible = this.buyer1Eligible && this.buyer1Age <= 35;
+                const isBuyer2Eligible = this.buyersCount === 2 && this.buyer2Eligible && this.buyer2Age <= 35;
+                youngBuyersCount = (isBuyer1Eligible ? 1 : 0) + (isBuyer2Eligible ? 1 : 0);
 
-                if (this.purpose === 'hpp') {
-                    imtBaseJovem = this.calculateYoungIMT(valorTotal, this.location);
+
+                if (isHPP && youngBuyersCount > 0) {
+                    isJovemBenefitApplied = true;
+                    const limitIsencao = isContinente ? 324058 : 405073;
+                    const limitParcial = isContinente ? 648022 : 810145;
                     
-                    // Selo Jovem
-                    const limitIsencao = this.location === 'continente' ? 324058 : 405073;
-                    const limitParcial = this.location === 'continente' ? 648022 : 810145;
+                    if (valorTotal <= limitParcial) {
+                        imtBaseJovem = this.calculateYoungIMT(valorTotal, this.location);
+                        
+                        // Selo Jovem
+                        if (valorTotal <= limitIsencao) {
+                            seloBaseJovem = 0;
+                        } else {
+                            // Selo sobre o excedente
+                            seloBaseJovem = (valorTotal - limitIsencao) * 0.008;
+                        }
+                        
+                        // Captura do Breakdown Jovem
+                        if (valorTotal <= limitIsencao) {
+                            imtBreakdownText = '0% (Isenção Total IMT Jovem)';
+                            this.imtBreakdown.isMarginal = false;
+                            this.imtBreakdown.marginalExemption = valorTotal;
+                        } else if (valorTotal > limitIsencao && valorTotal <= limitParcial) {
+                            imtBreakdownText = '8% (Taxa Marginal sobre Excedente IMT Jovem)';
+                            this.imtBreakdown.isMarginal = true;
+                            this.imtBreakdown.marginalExemption = limitIsencao;
+                            this.imtBreakdown.marginalRate = 8;
+                        }
+                    } else {
+                         imtBreakdownText = 'Taxa HPP Normal (Acima do limite Jovem)';
+                    }
                     
-                    if (valorTotal <= limitIsencao) {
-                        seloBaseJovem = 0;
-                    } else if (valorTotal <= limitParcial) {
-                        // Selo sobre o excedente
-                        seloBaseJovem = (valorTotal - limitIsencao) * 0.008;
+                    if (youngBuyersCount < this.buyersCount) {
+                        imtBreakdownText += ` - ${youngBuyersCount}/${this.buyersCount} compradores elegíveis`;
                     }
                 }
+                
+                this.imtBreakdown.isJovemBenefit = isJovemBenefitApplied;
+
 
                 // 3. Dividir por Compradores (Quota Parte)
                 let buyers = this.buyersCount;
@@ -406,10 +501,10 @@
                 for (let i = 1; i <= buyers; i++) {
                     let isEligible = false;
                     
-                    // Elegibilidade só em HPP e se marcado "Sim" e Idade <= 35
+                    // A elegibilidade IMT Jovem só é levada em conta se for HPP
                     if (this.purpose === 'hpp') {
-                        if (i === 1 && this.buyer1Eligible && this.buyer1Age <= 35) isEligible = true;
-                        if (i === 2 && this.buyer2Eligible && this.buyer2Age <= 35) isEligible = true;
+                        if (i === 1 && isBuyer1Eligible) isEligible = true;
+                        if (i === 2 && isBuyer2Eligible) isEligible = true;
                     }
 
                     if (isEligible) {
@@ -423,9 +518,15 @@
                     }
                 }
 
+                // 4. Atribuir Resultados
                 this.finalIMT = finalIMT;
                 this.finalStamp = finalStamp;
                 this.totalPayable = finalIMT + finalStamp;
+
+                // 5. Atribuir Breakdown Final
+                this.imtBreakdown.rateText = imtBreakdownText;
+                this.imtBreakdown.taxableValue = valorTotal;
+                this.imtBreakdown.finalIMT = finalIMT;
             }
         }
     }

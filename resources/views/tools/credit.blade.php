@@ -153,15 +153,15 @@
             <div class="lg:col-span-5">
                 <div class="sticky top-32 space-y-6">
                     
-                    {{-- Cartão Principal --}}
+                    {{-- Cartão Principal: Alterado para mostrar apenas Capital + Juros --}}
                     <div class="bg-ht-navy rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
                         <div class="absolute top-0 right-0 p-6 opacity-10">
                             <svg class="w-32 h-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
 
-                        <h3 class="text-xs font-bold text-slate-300 mb-2 uppercase tracking-widest">Prestação Mensal Estimada</h3>
+                        <h3 class="text-xs font-bold text-slate-300 mb-2 uppercase tracking-widest">Prestação Crédito (Capital + Juros)</h3>
                         <div class="text-5xl font-black mb-8 text-ht-accent tracking-tighter">
-                            € <span x-text="formatMoney(monthlyTotal)"></span>
+                            € <span x-text="formatMoney(monthlyPayment)"></span> {{-- Alterado de monthlyTotal para monthlyPayment --}}
                         </div>
 
                         <div class="space-y-4 text-sm font-medium text-slate-300 border-t border-white/10 pt-6">
@@ -170,7 +170,7 @@
                                 <span class="text-white">€ <span x-text="formatMoney(monthlyPayment)"></span></span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span>Imposto de Selo (4%)</span>
+                                <span>Imposto de Selo Juros (1º Mês) *4%</span> {{-- Rótulo ajustado --}}
                                 <span class="text-white">€ <span x-text="formatMoney(monthlyStampDuty)"></span></span>
                             </div>
                             {{-- Linha de Seguros (Vida + Casa) REMOVIDA --}}
@@ -189,10 +189,10 @@
                                 <span>Imposto Selo Abertura (0.6%)</span>
                                 <span class="font-bold text-ht-accent">€ <span x-text="formatMoney(openingStampDuty)"></span></span>
                             </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Comissões Bancárias (Est.)</span>
-                                <span class="font-bold text-ht-accent">€ <span x-text="formatMoney(bankFees)"></span></span>
-                            </div>
+                            {{-- <div class="flex justify-between text-slate-600"> --}}
+                            {{--     <span>Comissões Bancárias (Est.)</span> --}}
+                            {{--     <span class="font-bold text-ht-accent">€ <span x-text="formatMoney(bankFees)"></span></span> --}}
+                            {{-- </div> --}} {{-- Linha de Comissões REMOVIDA --}}
                             <div class="flex justify-between border-t border-slate-100 pt-3 mt-2">
                                 <span class="font-black text-ht-navy">Total Necessário (Cash)</span>
                                 <span class="font-black text-ht-navy">€ <span x-text="formatMoney(upfrontTotal)"></span></span>
@@ -250,10 +250,10 @@
             monthlyPayment: 0,
             monthlyStampDuty: 0,
             // totalInsurance: 0, REMOVIDO
-            monthlyTotal: 0,
+            monthlyTotal: 0, // monthlyTotal mantém-se, mas o display principal usa monthlyPayment
             
             openingStampDuty: 0,
-            bankFees: 550, 
+            bankFees: 0, // ALTERADO: Comissões bancárias removidas (setado para 0)
             upfrontTotal: 0,
             
             totalInterest: 0,
@@ -325,32 +325,23 @@
                 this.monthlyStampDuty = firstMonthInterest * 0.04;
 
                 // 5. Seguros (CÁLCULO REMOVIDO)
-                /*
-                if (this.autoInsurance) {
-                    let lifeRate = 0.00035 + ((this.age - 30) * 0.00001); 
-                    if (lifeRate < 0.0002) lifeRate = 0.0002;
-                    this.lifeInsurance = this.loanAmount * lifeRate;
-                    this.multiRiskInsurance = (this.propertyValue * 0.0008) / 12;
-                }
-                this.totalInsurance = this.lifeInsurance + this.multiRiskInsurance;
-                */
-
-                // 6. Total Mensal (Apenas Prestação + IS Juros)
+                
+                // 6. Total Mensal (Mantido para cálculo, mas não é o valor principal no display)
                 this.monthlyTotal = this.monthlyPayment + this.monthlyStampDuty;
 
                 // 7. Custos Iniciais
                 this.openingStampDuty = this.loanAmount * 0.006;
-                this.upfrontTotal = this.downPayment + this.openingStampDuty + this.bankFees;
+                this.upfrontTotal = this.downPayment + this.openingStampDuty; // ALTERADO: bankFees removido da soma
 
                 // 8. Totais Finais (Aproximados)
                 let totalPayments = this.monthlyPayment * n;
                 this.totalInterest = totalPayments - this.loanAmount;
                 
-                // MTIC = Total Pagamentos + IS Juros Totais + Custos Iniciais (IS Abertura + Comissões)
+                // MTIC = Total Pagamentos + IS Juros Totais + Custos Iniciais (IS Abertura)
                 let totalStampOnInterest = this.totalInterest * 0.04;
                 
-                // Variáveis de seguro removidas do MTIC: totalLife e totalMulti
-                this.mtic = totalPayments + totalStampOnInterest + this.openingStampDuty + this.bankFees;
+                // ALTERADO: bankFees e Seguros removidos do MTIC
+                this.mtic = totalPayments + totalStampOnInterest + this.openingStampDuty;
             }
         }
     }
