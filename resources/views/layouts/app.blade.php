@@ -52,12 +52,11 @@
          x-data="{ isOpen: false, isScrolled: false }"
          @scroll.window="isScrolled = (window.pageYOffset > 20)">
          
-        <div class="glass-nav rounded-full px-6 py-3 shadow-glass flex justify-between items-center md:gap-10 transition-all duration-300"
+        {{-- Removido o 'justify-between' e ajustado para centralizar o menu já que não tem logo --}}
+        <div class="glass-nav rounded-full px-6 py-3 shadow-glass flex justify-center items-center md:gap-6 transition-all duration-300"
              :class="isScrolled ? 'py-3' : 'py-4'">
             
-            <a href="{{ route('home') }}" class="block">
-                <img src="{{ asset('img/logo.png') }}" alt="House Team" class="h-8 md:h-10 w-auto">
-            </a>
+            {{-- LOGO REMOVIDA DAQUI --}}
 
             <div class="hidden md:flex items-center gap-1">
                 <a href="{{ route('home') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Home</a>
@@ -83,9 +82,13 @@
                 </a>
             </div>
 
-            <button @click="isOpen = !isOpen" class="md:hidden text-white p-1 rounded-full hover:bg-white/10 transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
+            {{-- Ajuste para manter o botão mobile alinhado --}}
+            <div class="md:hidden flex w-full justify-between items-center">
+                 <span class="text-white text-xs font-bold uppercase tracking-widest">Menu</span>
+                <button @click="isOpen = !isOpen" class="text-white p-1 rounded-full hover:bg-white/10 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
         </div>
 
         <div x-show="isOpen" x-collapse class="md:hidden mt-2 mx-auto w-[95%]">

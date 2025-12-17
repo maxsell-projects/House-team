@@ -4,7 +4,6 @@
 
 <section class="relative h-screen w-full flex items-center justify-center overflow-hidden bg-ht-navy">
     
-    {{-- Certifique-se de que o vídeo está em public/video/header_bg.mp4 --}}
     <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover">
         <source src="{{ asset('video/header_bg.mp4') }}" type="video/mp4">
     </video>
@@ -12,8 +11,18 @@
     <div class="absolute inset-0 bg-black/30"></div>
     <div class="absolute inset-0 bg-gradient-to-t from-ht-navy via-transparent to-black/60"></div>
 
+    {{-- NOVA ÁREA DA LOGO: Canto superior esquerdo com moldura redonda --}}
+    <div class="absolute top-6 left-6 md:top-10 md:left-10 z-30" data-aos="fade-right">
+        <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center p-4 shadow-2xl ring-4 ring-white/30 backdrop-blur-md">
+            {{-- object-contain garante que a logo fique inteira dentro do círculo --}}
+            <img src="{{ asset('img/logo.png') }}" alt="House Team Logo" class="w-full h-full object-contain">
+        </div>
+    </div>
+
     <div class="relative z-10 container mx-auto px-6 text-center" data-aos="fade-up">
         
+        {{-- LOGO ANTIGA REMOVIDA DAQUI --}}
+
         <div x-data="{ texts: ['INTEGRIDADE', 'GRATIDÃO', 'LIBERDADE', 'CONFIANÇA'], idx: 0 }" 
              x-init="setInterval(() => idx = (idx + 1) % texts.length, 2500)"
              class="h-10 mb-4 overflow-hidden flex justify-center">

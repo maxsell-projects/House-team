@@ -134,12 +134,10 @@
                         </label>
                         <div class="flex gap-6 mt-3">
                             <label class="inline-flex items-center cursor-pointer group">
-                                {{-- Adicionado resetHPPFields --}}
                                 <input type="radio" value="Sim" x-model="form.sold_to_state" @change="resetHPPFields" class="text-ht-accent focus:ring-ht-accent w-5 h-5 border-slate-300">
                                 <span class="ml-2 font-bold text-ht-navy group-hover:text-ht-accent transition-colors">Sim</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer group">
-                                {{-- Adicionado resetHPPFields --}}
                                 <input type="radio" value="Não" x-model="form.sold_to_state" @change="resetHPPFields" class="text-ht-accent focus:ring-ht-accent w-5 h-5 border-slate-300">
                                 <span class="ml-2 font-bold text-slate-600 group-hover:text-ht-navy transition-colors">Não</span>
                             </label>
@@ -157,7 +155,6 @@
                         <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
                             <label class="block text-sm font-bold text-ht-navy mb-3">O imóvel era a sua HPP há, pelo menos, 12 meses?</label>
                             <div class="flex flex-col gap-3">
-                                {{-- Adicionado resetReinvestmentFields --}}
                                 <label class="inline-flex items-center cursor-pointer group"><input type="radio" value="Sim" x-model="form.hpp_status" @change="resetReinvestmentFields" class="text-ht-accent focus:ring-ht-accent w-5 h-5 border-slate-300"><span class="ml-2 text-sm text-slate-600 group-hover:text-ht-navy">Sim (Beneficia de isenção por reinvestimento)</span></label>
                                 <label class="inline-flex items-center cursor-pointer group"><input type="radio" value="Menos12Meses" x-model="form.hpp_status" @change="resetReinvestmentFields" class="text-ht-accent focus:ring-ht-accent w-5 h-5 border-slate-300"><span class="ml-2 text-sm text-slate-600 group-hover:text-ht-navy">Não, era há menos de 12 meses (Tributação de 50%)</span></label>
                                 <label class="inline-flex items-center cursor-pointer group"><input type="radio" value="Não" x-model="form.hpp_status" @change="resetReinvestmentFields" class="text-ht-accent focus:ring-ht-accent w-5 h-5 border-slate-300"><span class="ml-2 text-sm text-slate-600 group-hover:text-ht-navy">Não (Imóvel Secundário/Investimento - Tributação de 50%)</span></label>
@@ -194,7 +191,7 @@
                                 </div>
                             </div>
                             
-                            {{-- Status Adicionais --}}
+                            {{-- Status Adicionais (ADICIONADO) --}}
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-ht-accent/30">
                                 <div>
                                     <label class="block text-sm font-bold text-ht-navy mb-3">Está reformado ou tem mais de 65 anos?</label>
@@ -333,7 +330,7 @@
                             Os ganhos provenientes da venda de imóveis para habitação ao Estado, às Regiões Autónomas, às entidades públicas empresariais na área da habitação ou às autarquias locais estão isentos de tributação em IRS e IRC.
                         </div>
 
-                        {{-- Mensagem sobre a regra dos 50% --}}
+                        {{-- Mensagem sobre a regra dos 50% (Corrigido para refletir a regra padrão) --}}
                         <div x-show="results.taxable_gain_fmt !== '0,00'" class="p-4 bg-yellow-100 border border-yellow-300 rounded-2xl text-xs text-yellow-800 font-medium">
                             <strong class="block mb-1 text-sm text-yellow-900">Por que apenas 50% é tributável?</strong>
                             Em Portugal, a lei do IRS estabelece que apenas 50% do valor da mais-valia (após as deduções e isenções de reinvestimento) é englobado e sujeito a imposto (IRS). A outra metade fica isenta. O cálculo que vê em "Parte tributável" já reflete esta redução.
@@ -420,8 +417,9 @@
                 public_support: 'Não',
                 public_support_year: 2020,
                 public_support_month: 'Janeiro',
-                retired_status: 'Não',
-                self_built: 'Não',
+                // CAMPOS ADICIONADOS PARA COMPATIBILIDADE COM O SERVICE
+                retired_status: 'Não', 
+                self_built: 'Não', 
                 reinvest_intention: 'Não',
                 reinvestment_amount: '',
                 lead_name: '',
@@ -449,12 +447,13 @@
             },
 
             resetReinvestmentFields() {
-                // Se não for HPP há mais de 12 meses, zera as opções de benefício fiscal
+                 // Se não for HPP há mais de 12 meses, zera as opções de benefício fiscal
                  if(this.form.hpp_status !== 'Sim') {
                     this.form.reinvest_intention = 'Não';
                     this.form.reinvestment_amount = '';
                     this.form.amortize_credit = 'Não';
                     this.form.amortization_amount = '';
+                    // Reset dos campos adicionais para que não sejam enviados se não forem aplicáveis
                     this.form.retired_status = 'Não';
                     this.form.self_built = 'Não';
                 }

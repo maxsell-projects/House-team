@@ -4,7 +4,6 @@
             <div class="elementor-element elementor-element-9148b42 e-con-full e-flex e-con e-child">
                 <div class="elementor-widget-container">
                     <a href="{{ url('/') }}">
-                        <img width="300" src="https://diogomaiaconsultor.pt/wp-content/uploads/2025/11/Ativo-1-1-300x58.png" alt="Diogo Maia Logo">
                     </a>
                 </div>
             </div>
