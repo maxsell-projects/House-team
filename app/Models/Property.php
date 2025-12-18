@@ -10,14 +10,19 @@ class Property extends Model
     use HasFactory;
 
     protected $fillable = [
-        'consultant_id', // <--- NOVO
+        'consultant_id',
+        // NOVOS CAMPOS DO IDEALISTA
+        'idealista_id', 
+        'idealista_url', 
+        'last_synced_at',
+        // -------------------------
         'title', 'slug', 'description', 'type', 'status',
         'location', 'address', 'postal_code', 'city', 'latitude', 'longitude',
         'price', 'area_gross', 'area_useful', 'area_land',
         'bedrooms', 'bathrooms', 'garages', 'floor', 'orientation', 'built_year', 'condition', 'energy_rating',
         'has_lift', 'has_garden', 'has_pool', 'has_terrace', 'has_balcony', 
         'has_air_conditioning', 'has_heating', 'is_accessible', 'is_furnished', 'is_kitchen_equipped',
-        'cover_image', 'video_url', 'whatsapp_number', // (Pode manter por retrocompatibilidade ou remover futuramente)
+        'cover_image', 'video_url', 'whatsapp_number',
         'is_featured', 'is_visible',
     ];
 
@@ -28,6 +33,7 @@ class Property extends Model
         'has_garden' => 'boolean',
         'is_furnished' => 'boolean',
         'is_kitchen_equipped' => 'boolean',
+        'last_synced_at' => 'datetime', // Útil para formatar datas automaticamente
     ];
 
     public function images()
@@ -35,7 +41,6 @@ class Property extends Model
         return $this->hasMany(PropertyImage::class);
     }
 
-    // <--- NOVA RELAÇÃO
     public function consultant()
     {
         return $this->belongsTo(Consultant::class);

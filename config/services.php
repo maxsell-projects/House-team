@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'idealista' => [
+        'key' => env('IDEALISTA_API_KEY'),
+        'secret' => env('IDEALISTA_SECRET'),
+        'feed_key' => env('IDEALISTA_FEED_KEY'), // <--- NOVO OBRIGATÓRIO
+        'base_url' => env('IDEALISTA_BASE_URL', 'https://partners-sandbox.idealista.pt'),
+    ],
+
 ];
