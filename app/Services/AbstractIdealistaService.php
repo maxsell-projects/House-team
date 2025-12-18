@@ -22,10 +22,16 @@ abstract class AbstractIdealistaService
         $this->baseUrl = config('services.idealista.base_url');
     }
 
-    protected function getToken()
+    /**
+     * Obtém o token solicitando o escopo específico (read ou write)
+     */
+    protected function getToken($scope = 'read')
     {
-        if (Cache::has('idealista_token')) {
-            return Cache::get('idealista_token');
+        // Cache separado por escopo para não misturar permissões
+        $cacheKey = "idealista_token_{$scope}";
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
         }
 
         $credentials = base64_encode("{$this->key}:{$this->secret}");
@@ -38,35 +44,36 @@ abstract class AbstractIdealistaService
                 ])
                 ->post("{$this->baseUrl}/oauth/token", [
                     'grant_type' => 'client_credentials',
-                    'scope' => 'read write' 
+                    'scope' => $scope // Passamos 'read' ou 'write' estritamente
                 ]);
 
             if ($response->failed()) {
-                Log::error('Erro Auth Idealista: ' . $response->body());
-                throw new Exception('Falha na autenticação com Idealista: ' . $response->status());
+                Log::error("Erro Auth Idealista ($scope): " . $response->body());
+                throw new Exception("Falha na autenticação ($scope): " . $response->status());
             }
 
             $data = $response->json();
             $expiresIn = isset($data['expires_in']) ? (int)$data['expires_in'] - 60 : 200;
             if ($expiresIn <= 0) $expiresIn = 60;
 
-            Cache::put('idealista_token', $data['access_token'], $expiresIn);
+            Cache::put($cacheKey, $data['access_token'], $expiresIn);
 
             return $data['access_token'];
         } catch (\Exception $e) {
-            Log::critical('Exceção na Auth Idealista: ' . $e->getMessage());
+            Log::critical("Exceção Auth Idealista ($scope): " . $e->getMessage());
             throw $e;
         }
     }
 
-    public function getHeaders()
+    public function getHeaders($scope = 'read')
     {
-        $token = $this->getToken();
+        $token = $this->getToken($scope);
+        
         return [
             'Authorization' => "Bearer {$token}",
-            'feedKey' => $this->feedKey,
+            'feedKey' => $this->feedKey, // Obrigatório em todos os endpoints segundo o YAML
             'Content-Type' => 'application/json',
-            'Accept' => 'application/json', // Boa prática adicionar Accept
+            'Accept' => 'application/json',
         ];
     }
 }

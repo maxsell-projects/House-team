@@ -13,21 +13,27 @@ class IdealistaExportService extends AbstractIdealistaService
      */
     public function createProperty($localProperty)
     {
-        $contactId = $this->getOrCreateDefaultContact();
+        // Usa token 'write' para permissão de escrita
+        $headers = $this->getHeaders('write');
+
+        // 1. Resolve o Contato (Obrigatório ter ID antes de criar imóvel)
+        $contactId = $this->getOrCreateDefaultContact($headers);
         
-        if (!$contactId || $contactId < 1) {
-            throw new Exception("ID do contato inválido ({$contactId}). Não é possível criar imóvel.");
+        if (!$contactId) {
+            throw new Exception("Não foi possível obter um ID de contato válido.");
         }
 
+        // 2. Monta Payload
         $payload = $this->mapToIdealistaPayload($localProperty, $contactId);
 
-        Log::info("Enviando Imóvel ID {$localProperty->id} para Idealista:", $payload);
+        Log::info("Enviando Imóvel ID {$localProperty->id}...", $payload);
 
-        $response = Http::withHeaders($this->getHeaders())
+        $response = Http::withHeaders($headers)
             ->post("{$this->baseUrl}/v1/properties", $payload);
 
         if ($response->failed()) {
-            throw new Exception('Erro ao criar imóvel no Idealista: ' . $response->body());
+            Log::error('Erro API Idealista (Create): ' . $response->body());
+            throw new Exception('Erro ao criar imóvel: ' . $response->body());
         }
 
         return $response->json();
@@ -38,19 +44,16 @@ class IdealistaExportService extends AbstractIdealistaService
      */
     public function uploadImages($idealistaId, $localProperty)
     {
-        if (!$localProperty->relationLoaded('images')) {
-            $localProperty->load('images');
-        }
-
+        $headers = $this->getHeaders('write');
+        
+        if (!$localProperty->relationLoaded('images')) $localProperty->load('images');
         $images = $localProperty->images; 
 
-        if ($images->isEmpty()) {
-            Log::warning("Imóvel {$localProperty->id} não tem imagens locais para enviar.");
-            return null;
-        }
+        if ($images->isEmpty()) return null;
 
         $imagesPayload = [];
         foreach ($images as $img) {
+            // OBS: Em localhost o Idealista não consegue baixar a imagem, mas enviamos a URL mesmo assim.
             $fullUrl = asset('storage/' . $img->path);
             
             $imagesPayload[] = [
@@ -63,24 +66,22 @@ class IdealistaExportService extends AbstractIdealistaService
 
         $payload = ['images' => $imagesPayload];
 
-        Log::info("Enviando imagens para imóvel Idealista {$idealistaId}", $payload);
-
-        $response = Http::withHeaders($this->getHeaders())
+        $response = Http::withHeaders($headers)
             ->put("{$this->baseUrl}/v1/properties/{$idealistaId}/images", $payload);
 
         if ($response->failed()) {
-            throw new Exception('Erro ao enviar imagens: ' . $response->body());
+            throw new Exception('Erro upload imagens: ' . $response->body());
         }
 
         return $response->json();
     }
 
-    // --- HELPERS E MAPEAMENTOS ---
+    // --- Helpers Privados ---
 
-    protected function getOrCreateDefaultContact()
+    private function getOrCreateDefaultContact($headers)
     {
-        $response = Http::withHeaders($this->getHeaders())
-            ->get("{$this->baseUrl}/v1/contacts");
+        // Tenta listar primeiro
+        $response = Http::withHeaders($headers)->get("{$this->baseUrl}/v1/contacts");
 
         if ($response->successful()) {
             $contacts = $response->json();
@@ -90,56 +91,72 @@ class IdealistaExportService extends AbstractIdealistaService
             }
         }
 
-        $newContactPayload = [
+        // Se não existir, cria
+        $newContact = [
             'name' => 'Agente House Team',
             'email' => 'admin@houseteam.pt',
-            'primaryPhoneNumber' => '910000000', 
+            'primaryPhoneNumber' => '910000000',
         ];
 
-        $createResponse = Http::withHeaders($this->getHeaders())
-            ->post("{$this->baseUrl}/v1/contacts", $newContactPayload);
-
-        if ($createResponse->failed()) {
-            throw new Exception("Falha ao criar contato: " . $createResponse->body());
-        }
-
-        $data = $createResponse->json();
-        $id = $data['contactId'] ?? $data['code'] ?? $data['id'] ?? null;
-
-        if (!$id) {
-            throw new Exception("Contato criado, mas ID não retornado.");
-        }
-
-        return $id;
+        $createParams = Http::withHeaders($headers)->post("{$this->baseUrl}/v1/contacts", $newContact);
+        $data = $createParams->json();
+        
+        return $data['contactId'] ?? $data['code'] ?? null;
     }
 
     protected function mapToIdealistaPayload($property, $contactId)
     {
         $type = $this->mapType($property->type);
         
+        // --- CORREÇÃO 3: Proteção de Área Mínima (Erro numeric >= 11) ---
         $area = (int) $property->area_gross;
-        if ($area < 1) $area = 50; 
+        if ($area < 20) $area = 60; // Garante que nunca envie menos que 20m²
 
         $rooms = (int) $property->bedrooms;
-        if ($rooms < 1) $rooms = 1; 
+        if ($rooms < 0) $rooms = 1; 
 
         $baths = (int) $property->bathrooms;
         if ($baths < 1) $baths = 1;
 
         $price = (float) $property->price;
-        if ($price < 1) $price = 1000.00;
+        if ($price < 1) $price = 100000.00;
+
+        // Monta features base
+        $features = [
+            'rooms' => $rooms,            
+            'bathroomNumber' => $baths,   
+            'areaConstructed' => $area,   
+            'energyCertificateRating' => 'unknown',
+            'conservation' => 'good',
+        ];
+
+        // Adiciona elevador apenas se for apartamento
+        if ($type === 'flat') {
+            $features['liftAvailable'] = (bool) $property->has_lift;
+        }
+
+        // Se for terreno, remove campos incompatíveis
+        if ($type === 'land') {
+            unset($features['rooms'], $features['bathroomNumber'], $features['energyCertificateRating'], $features['conservation']);
+            if (isset($features['liftAvailable'])) unset($features['liftAvailable']);
+            $features['areaPlot'] = $area;
+            unset($features['areaConstructed']);
+        }
 
         $payload = [
             'type' => $type,
             'reference' => (string) $property->id,
             
+            // --- CORREÇÃO 1 e 2: Endereço Rigoroso ---
             'address' => [
                 'visibility' => 'hidden',
+                'precision'  => 'exact',      // Era 'street', mudou para 'exact'
+                'country'    => 'Portugal',   // Era 'PT', mudou para 'Portugal'
+                
                 'streetName' => $property->address ?? 'Rua Principal',
                 'streetNumber' => '1',
                 'postalCode' => $this->formatPostalCode($property->postal_code),
                 'town' => $property->city ?? 'Lisboa',
-                'country' => 'Portugal'
             ],
 
             'operation' => [
@@ -147,30 +164,14 @@ class IdealistaExportService extends AbstractIdealistaService
                 'price' => $price
             ],
 
-            'features' => [
-                'rooms' => $rooms,            
-                'bathroomNumber' => $baths,   
-                'areaConstructed' => $area,   
-                'energyCertificateRating' => 'unknown',
-                'conservation' => 'good',
-            ],
+            'features' => $features,
 
             'descriptions' => [
-                ['language' => 'pt', 'text' => substr(strip_tags($property->description ?? 'Imóvel disponível.'), 0, 3000)]
+                ['language' => 'pt', 'text' => substr(strip_tags($property->description ?? 'Imóvel disponível para venda.'), 0, 3000)]
             ],
 
             'contactId' => (int) $contactId
         ];
-
-        if ($type === 'flat') {
-            $payload['features']['liftAvailable'] = (bool) $property->has_lift;
-        }
-
-        if ($type === 'land') {
-            unset($payload['features']['rooms'], $payload['features']['bathroomNumber'], $payload['features']['energyCertificateRating'], $payload['features']['conservation'], $payload['features']['liftAvailable']);
-            $payload['features']['areaPlot'] = $area;
-            unset($payload['features']['areaConstructed']);
-        }
 
         return $payload;
     }
@@ -178,10 +179,11 @@ class IdealistaExportService extends AbstractIdealistaService
     protected function formatPostalCode($code)
     {
         if (!$code) return '1000-001';
-        if (preg_match('/^\d{7}$/', $code)) {
+        $code = preg_replace('/[^0-9]/', '', $code);
+        if (strlen($code) >= 7) {
             return substr($code, 0, 4) . '-' . substr($code, 4, 3);
         }
-        return $code;
+        return '1000-001';
     }
 
     protected function mapType($type)
