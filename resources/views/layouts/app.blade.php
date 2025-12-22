@@ -20,7 +20,7 @@
                     colors: {
                         'ht-navy': '#020617', 
                         'ht-primary': '#1e3a8a',
-                        'ht-accent': '#dc2626',
+                        'ht-accent': '#dc2626', // Vermelho da marca
                         'ht-dark': '#020617',
                     },
                     boxShadow: {
@@ -48,6 +48,7 @@
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-50 selection:bg-ht-accent selection:text-white">
 
+    {{-- MENU DE NAVEGAÇÃO --}}
     <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-auto transition-all duration-500"
          x-data="{ isOpen: false, isScrolled: false }"
          @scroll.window="isScrolled = (window.pageYOffset > 20)">
@@ -106,7 +107,7 @@
         @yield('content')
     </main>
 
-    {{-- RODAPÉ (FOOTER) CORRIGIDO --}}
+    {{-- RODAPÉ (FOOTER) --}}
     <footer class="bg-ht-navy text-white pt-24 pb-12 border-t border-white/5">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12">
@@ -145,11 +146,56 @@
                     </ul>
                 </div>
             </div>
-            <div class="pt-8 text-center text-xs text-slate-500 uppercase tracking-widest">
-                &copy; {{ date('Y') }} House Team Consultores. Todos os direitos reservados.
+            
+            <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-slate-500 text-xs uppercase tracking-widest text-center md:text-left">
+                    &copy; {{ date('Y') }} House Team Consultores. Todos os direitos reservados.
+                </p>
+                
+                {{-- LOGO MAXSELL ADVISOR --}}
+                <a href="https://www.maxselladvisor.com" target="_blank" class="opacity-50 hover:opacity-100 transition-opacity">
+                    <img src="{{ asset('img/maxsell.png') }}" alt="MaxSell Advisor" class="h-6 w-auto brightness-0 invert">
+                </a>
             </div>
         </div>
     </footer>
+
+    {{-- BOTÃO WHATSAPP (ESQUERDA) --}}
+    <div class="fixed bottom-6 left-6 z-[100]">
+        <a href="https://wa.me/351923224551" 
+           target="_blank" 
+           class="w-12 h-12 bg-[#25D366] text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform duration-300 focus:outline-none hover:shadow-green-500/30 ring-2 ring-white/50" 
+           title="Fale Conosco no WhatsApp">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+    </div>
+
+    {{-- BOTÕES FLUTUANTES (DIREITA: VOLTAR + TOPO) --}}
+    <div class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3" 
+         x-data="{ showTop: false }" 
+         @scroll.window="showTop = (window.pageYOffset > 300)">
+        
+        {{-- 1. Botão Topo (Seta Cima) - Seta Vermelha --}}
+        <button x-show="showTop" 
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-300"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 translate-y-4"
+                @click="window.scrollTo({top: 0, behavior: 'smooth'})" 
+                class="w-12 h-12 bg-white text-ht-accent rounded-full shadow-lg border border-slate-100 flex items-center justify-center hover:bg-ht-accent hover:text-white transition-all duration-300 focus:outline-none transform hover:scale-110" 
+                title="Voltar ao Topo">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+        </button>
+
+        {{-- 2. Botão Voltar (Seta Esquerda) --}}
+        <button @click="history.back()" 
+                class="w-12 h-12 bg-white text-ht-navy rounded-full shadow-lg border border-slate-100 flex items-center justify-center hover:bg-ht-navy hover:text-white transition-all duration-300 focus:outline-none transform hover:scale-110" 
+                title="Voltar Página">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </button>
+    </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
