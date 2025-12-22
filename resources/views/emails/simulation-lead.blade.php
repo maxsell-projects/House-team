@@ -2,8 +2,7 @@
 <html>
 <head>
     <style>
-        body { font-family: 'Montserrat', sans-serif; color: #0f172a; line-height: 1.6; }
-        .highlight { color: #dc2626; font-weight: bold; }
+        body { font-family: sans-serif; color: #0f172a; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -18,6 +17,6 @@
     <br>
     <p>Com os melhores cumprimentos,</p>
     <p><strong>Equipa House Team</strong><br>
-    <a href="https://houseteamconsultores.pt">www.houseteamconsultores.pt</a></p>
+    <a href="https://houseteamconsultores.pt" style="color: #dc2626; text-decoration: none;">www.houseteamconsultores.pt</a></p>
 </body>
 </html>
