@@ -123,7 +123,6 @@
                         {{-- Taxa Fixa Manual (Se Fixa) --}}
                         <div x-show="rateType === 'fixed'" x-transition>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Taxa Fixa Anual (%)</label>
-                            {{-- Valor padrão alterado para 4.0% no JS --}}
                             <input type="number" step="0.01" x-model.number="fixedRate" @input="calculate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary text-ht-navy" placeholder="Ex: 4.0">
                         </div>
 
@@ -145,8 +144,6 @@
                     </div>
                 </div>
 
-                {{-- 3. Seguros (Opcional) REMOVIDO --}}
-
             </div>
 
             {{-- ÁREA DE RESULTADOS --}}
@@ -161,7 +158,7 @@
 
                         <h3 class="text-xs font-bold text-slate-300 mb-2 uppercase tracking-widest">Prestação Crédito (Capital + Juros)</h3>
                         <div class="text-5xl font-black mb-8 text-ht-accent tracking-tighter">
-                            € <span x-text="formatMoney(monthlyPayment)"></span> {{-- Alterado de monthlyTotal para monthlyPayment --}}
+                            € <span x-text="formatMoney(monthlyPayment)"></span>
                         </div>
 
                         <div class="space-y-4 text-sm font-medium text-slate-300 border-t border-white/10 pt-6">
@@ -170,10 +167,9 @@
                                 <span class="text-white">€ <span x-text="formatMoney(monthlyPayment)"></span></span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span>Imposto de Selo Juros (1º Mês) *4%</span> {{-- Rótulo ajustado --}}
+                                <span>Imposto de Selo Juros (1º Mês) *4%</span>
                                 <span class="text-white">€ <span x-text="formatMoney(monthlyStampDuty)"></span></span>
                             </div>
-                            {{-- Linha de Seguros (Vida + Casa) REMOVIDA --}}
                         </div>
                     </div>
 
@@ -189,10 +185,6 @@
                                 <span>Imposto Selo Abertura (0.6%)</span>
                                 <span class="font-bold text-ht-accent">€ <span x-text="formatMoney(openingStampDuty)"></span></span>
                             </div>
-                            {{-- <div class="flex justify-between text-slate-600"> --}}
-                            {{--     <span>Comissões Bancárias (Est.)</span> --}}
-                            {{--     <span class="font-bold text-ht-accent">€ <span x-text="formatMoney(bankFees)"></span></span> --}}
-                            {{-- </div> --}} {{-- Linha de Comissões REMOVIDA --}}
                             <div class="flex justify-between border-t border-slate-100 pt-3 mt-2">
                                 <span class="font-black text-ht-navy">Total Necessário (Cash)</span>
                                 <span class="font-black text-ht-navy">€ <span x-text="formatMoney(upfrontTotal)"></span></span>
@@ -218,10 +210,10 @@
 
                     {{-- CTA --}}
                     <div class="text-center">
-                           <a href="{{ route('contact') }}" class="block w-full bg-ht-accent text-white font-black uppercase tracking-widest py-5 rounded-3xl shadow-lg hover:bg-red-700 hover:shadow-xl transition-all transform hover:-translate-y-1 text-xs">
-                                Pedir Aprovação Bancária
-                            </a>
-                            <p class="text-[10px] text-slate-400 mt-3 font-medium">Valores meramente indicativos. Não dispensa proposta oficial.</p>
+                        <button @click="showLeadModal = true" class="block w-full bg-ht-accent text-white font-black uppercase tracking-widest py-5 rounded-3xl shadow-lg hover:bg-red-700 hover:shadow-xl transition-all transform hover:-translate-y-1 text-xs">
+                            Receber Relatório / Pedir Aprovação
+                        </button>
+                        <p class="text-[10px] text-slate-400 mt-3 font-medium">Valores meramente indicativos. Não dispensa proposta oficial.</p>
                     </div>
 
                 </div>
@@ -229,6 +221,31 @@
 
         </div>
     </div>
+
+    {{-- MODAL DE LEAD (ADICIONADO) --}}
+    <div x-show="showLeadModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showLeadModal" class="fixed inset-0 bg-ht-navy/80 backdrop-blur-sm transition-opacity" @click="showLeadModal = false"></div>
+            <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="px-8 pt-8 pb-6">
+                    <h3 class="text-2xl font-black text-ht-navy mb-2 text-center">Receber Relatório Detalhado</h3>
+                    <p class="text-sm text-slate-500 mb-6 text-center">Indique o seu email para receber a simulação em PDF.</p>
+                    <div class="space-y-4">
+                        <input type="text" x-model="lead_name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="Nome Completo">
+                        <input type="email" x-model="lead_email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="E-mail">
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-8 py-6 flex flex-col gap-3">
+                    <button type="button" @click="submitLead" class="w-full bg-ht-accent text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-all" :disabled="loading">
+                        <span x-show="!loading">Receber Simulação</span>
+                        <span x-show="loading">A enviar...</span>
+                    </button>
+                    <button @click="showLeadModal = false" class="text-xs text-slate-400 font-bold uppercase hover:text-ht-navy">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </section>
 
 <script>
@@ -241,19 +258,16 @@
             age: 30,
             rateType: 'variable', 
             euriborRate: 2.17, 
-            fixedRate: 4.0, // <-- NOVO VALOR PADRÃO
+            fixedRate: 4.0,
             spread: 0.85,
             tan: 0,
             
-            // Variáveis de Seguros REMOVIDAS
-            
             monthlyPayment: 0,
             monthlyStampDuty: 0,
-            // totalInsurance: 0, REMOVIDO
-            monthlyTotal: 0, // monthlyTotal mantém-se, mas o display principal usa monthlyPayment
+            monthlyTotal: 0,
             
             openingStampDuty: 0,
-            bankFees: 0, // ALTERADO: Comissões bancárias removidas (setado para 0)
+            bankFees: 0,
             upfrontTotal: 0,
             
             totalInterest: 0,
@@ -261,6 +275,12 @@
             
             ltv: 0,
             ageWarning: '',
+
+            // Variáveis do Modal
+            showLeadModal: false,
+            loading: false,
+            lead_name: '',
+            lead_email: '',
 
             formatMoney(value) {
                 return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
@@ -324,24 +344,60 @@
                 let firstMonthInterest = this.loanAmount * i;
                 this.monthlyStampDuty = firstMonthInterest * 0.04;
 
-                // 5. Seguros (CÁLCULO REMOVIDO)
-                
-                // 6. Total Mensal (Mantido para cálculo, mas não é o valor principal no display)
+                // 6. Total Mensal
                 this.monthlyTotal = this.monthlyPayment + this.monthlyStampDuty;
 
                 // 7. Custos Iniciais
                 this.openingStampDuty = this.loanAmount * 0.006;
-                this.upfrontTotal = this.downPayment + this.openingStampDuty; // ALTERADO: bankFees removido da soma
+                this.upfrontTotal = this.downPayment + this.openingStampDuty;
 
-                // 8. Totais Finais (Aproximados)
+                // 8. Totais Finais
                 let totalPayments = this.monthlyPayment * n;
                 this.totalInterest = totalPayments - this.loanAmount;
                 
-                // MTIC = Total Pagamentos + IS Juros Totais + Custos Iniciais (IS Abertura)
                 let totalStampOnInterest = this.totalInterest * 0.04;
-                
-                // ALTERADO: bankFees e Seguros removidos do MTIC
                 this.mtic = totalPayments + totalStampOnInterest + this.openingStampDuty;
+            },
+
+            async submitLead() {
+                if(!this.lead_name || !this.lead_email) { 
+                    alert('Por favor, preencha o seu nome e email.'); 
+                    return; 
+                }
+                this.loading = true;
+                
+                try {
+                    const response = await fetch('{{ route('tools.credit.send') }}', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            propertyValue: this.propertyValue,
+                            loanAmount: this.loanAmount,
+                            years: this.years,
+                            tan: this.tan,
+                            monthlyPayment: this.monthlyPayment,
+                            mtic: this.mtic,
+                            lead_name: this.lead_name,
+                            lead_email: this.lead_email
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Falha no envio');
+
+                    alert('Simulação enviada com sucesso! Verifique o seu email.');
+                    this.showLeadModal = false;
+                    this.lead_name = '';
+                    this.lead_email = '';
+                } catch(e) {
+                    console.error(e);
+                    alert('Ocorreu um erro ao enviar a simulação. Tente novamente.');
+                } finally {
+                    this.loading = false;
+                }
             }
         }
     }

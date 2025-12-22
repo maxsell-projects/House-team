@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\Property;
-use App\Models\Consultant; // <--- Importado para a rota /sobre
+use App\Models\Consultant;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ToolsController;
@@ -14,16 +14,14 @@ Route::get('/', function () {
     return view('home', compact('properties'));
 })->name('home');
 
-// Rota /sobre agora busca dados do banco
+// Rota /sobre
 Route::get('/sobre', function () {
     $consultants = Consultant::where('is_active', true)
         ->orderBy('order', 'asc')
         ->get();
 
-    // Assume que o primeiro (ordem mais baixa) é o Líder
     $leader = $consultants->first();
     
-    // O resto é a equipa
     $team = $consultants->filter(function ($consultant) use ($leader) {
         return $consultant->id !== ($leader->id ?? null);
     });
@@ -37,17 +35,27 @@ Route::get('/imoveis/{property:slug}', [PropertyController::class, 'show'])->nam
 
 // --- FERRAMENTAS ---
 
-// Simulador de Crédito
+// 1. Simulador de Crédito
 Route::get('/ferramentas/simulador-credito', function () {
     return view('tools.credit');
 })->name('tools.credit');
 
-// Simulador de IMT
+// [NOVO] Rota para processar o envio da Lead de Crédito
+Route::post('/ferramentas/simulador-credito/enviar', [ToolsController::class, 'sendCreditSimulation'])
+    ->name('tools.credit.send');
+
+
+// 2. Simulador de IMT
 Route::get('/ferramentas/imt', function () {
     return view('tools.imt');
 })->name('tools.imt');
 
-// Simulador de Mais-Valias
+// [NOVO] Rota para processar o envio da Lead de IMT
+Route::post('/ferramentas/imt/enviar', [ToolsController::class, 'sendImtSimulation'])
+    ->name('tools.imt.send');
+
+
+// 3. Simulador de Mais-Valias
 Route::get('/ferramentas/mais-valias', function () {
     return view('tools.gains');
 })->name('tools.gains');

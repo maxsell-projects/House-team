@@ -95,7 +95,7 @@
                     </div>
                 </div>
 
-                {{-- Informação Compradores (AGORA VISÍVEL SEMPRE) --}}
+                {{-- Informação Compradores (VISÍVEL SEMPRE) --}}
                 <div x-transition class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
                     <h3 class="text-xl font-bold text-ht-navy border-b border-slate-100 pb-4 mb-6 flex items-center gap-3">
                         <span class="bg-ht-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
@@ -248,18 +248,43 @@
                         </div>
                     </div>
 
-                    {{-- Call to Action --}}
+                    {{-- Call to Action (ATUALIZADO) --}}
                     <div class="text-center space-y-4 pt-4">
                         <p class="text-sm font-medium text-slate-600">O seu próximo passo para a nova casa.</p>
-                        <a href="{{ route('tools.credit') }}" class="block w-full bg-ht-accent text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-red-700 transition-all text-xs shadow-lg transform hover:-translate-y-1">
-                            Simular Crédito Habitação
-                        </a>
+                        <button @click="showLeadModal = true" class="block w-full bg-ht-accent text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-red-700 transition-all text-xs shadow-lg transform hover:-translate-y-1">
+                            Receber Relatório Detalhado
+                        </button>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
+
+    {{-- MODAL DE LEAD --}}
+    <div x-show="showLeadModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showLeadModal" class="fixed inset-0 bg-ht-navy/80 backdrop-blur-sm transition-opacity" @click="showLeadModal = false"></div>
+            <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="px-8 pt-8 pb-6">
+                    <h3 class="text-2xl font-black text-ht-navy mb-2 text-center">Receber Relatório Detalhado</h3>
+                    <p class="text-sm text-slate-500 mb-6 text-center">Indique o seu email para receber a simulação em PDF.</p>
+                    <div class="space-y-4">
+                        <input type="text" x-model="lead_name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="Nome Completo">
+                        <input type="email" x-model="lead_email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="E-mail">
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-8 py-6 flex flex-col gap-3">
+                    <button type="button" @click="submitLead" class="w-full bg-ht-accent text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-all" :disabled="loading">
+                        <span x-show="!loading">Receber Simulação</span>
+                        <span x-show="loading">A enviar...</span>
+                    </button>
+                    <button @click="showLeadModal = false" class="text-xs text-slate-400 font-bold uppercase hover:text-ht-navy">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </section>
 
 <script>
@@ -292,6 +317,12 @@
                 marginalRate: 0,
             },
             showBreakdown: false,
+
+            // Variáveis do Modal
+            showLeadModal: false,
+            loading: false,
+            lead_name: '',
+            lead_email: '',
 
             setBuyerEligible(buyerIndex, value) {
                 if (buyerIndex === 1) this.buyer1Eligible = value;
@@ -526,6 +557,47 @@
                 this.imtBreakdown.rateText = imtBreakdownText;
                 this.imtBreakdown.taxableValue = valorTotal;
                 this.imtBreakdown.finalIMT = finalIMT;
+            },
+
+            async submitLead() {
+                if(!this.lead_name || !this.lead_email) { 
+                    alert('Por favor, preencha o seu nome e email.'); 
+                    return; 
+                }
+                this.loading = true;
+                
+                try {
+                    const response = await fetch('{{ route('tools.imt.send') }}', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            propertyValue: this.propertyValue,
+                            location: this.location,
+                            purpose: this.purpose,
+                            finalIMT: this.finalIMT,
+                            finalStamp: this.finalStamp,
+                            totalPayable: this.totalPayable,
+                            lead_name: this.lead_name,
+                            lead_email: this.lead_email
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Falha no envio');
+
+                    alert('Simulação enviada com sucesso! Verifique o seu email.');
+                    this.showLeadModal = false;
+                    this.lead_name = '';
+                    this.lead_email = '';
+                } catch(e) {
+                    console.error(e);
+                    alert('Ocorreu um erro ao enviar a simulação. Tente novamente.');
+                } finally {
+                    this.loading = false;
+                }
             }
         }
     }
