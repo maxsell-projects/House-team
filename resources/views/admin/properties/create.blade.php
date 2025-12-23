@@ -175,7 +175,7 @@
                             <span class="w-8 h-8 rounded-full bg-ht-blue text-white flex items-center justify-center text-xs">2</span>
                             Detalhes do Imóvel
                         </h3>
-                        {{-- (MANTIDO IGUAL AO ORIGINAL, APENAS RESUMIDO AQUI PARA ECONOMIA) --}}
+                        
                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Concelho / Zona</label>
@@ -186,7 +186,7 @@
                                 <input type="text" name="address" value="{{ old('address') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="Rua...">
                             </div>
                         </div>
-                        {{-- Os restantes inputs de Área, Quartos, etc., mantêm-se iguais --}}
+                        
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Área Bruta (m²)</label>
@@ -220,7 +220,8 @@
                             </div>
                         </div>
 
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        {{-- [NOVO] Grid atualizado para incluir garagem --}}
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Andar</label>
                                 <input type="text" name="floor" value="{{ old('floor') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="Ex: 2º Esq, R/C">
@@ -241,11 +242,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Garagens / Lugares</label>
+                                <input type="number" name="garages" value="{{ old('garages') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="0">
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Mantive o restante das sessões 3 e 4 (Comodidades, Mídia, Descrição) idênticas ao original --}}
-                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                         <h3 class="text-lg font-bold text-ht-navy mb-6 flex items-center gap-2">
                             <span class="w-8 h-8 rounded-full bg-ht-blue text-white flex items-center justify-center text-xs">3</span>
                             Comodidades
