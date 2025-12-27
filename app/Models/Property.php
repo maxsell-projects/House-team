@@ -13,6 +13,7 @@ class Property extends Model
         'consultant_id',
         // NOVOS CAMPOS DO IDEALISTA
         'idealista_id', 
+        'crm_code',
         'idealista_url', 
         'last_synced_at',
         // -------------------------

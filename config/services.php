@@ -15,17 +15,17 @@ return [
     */
 
     'postmark' => [
-        'key' => env('POSTMARK_API_KEY'),
-    ],
-
-    'resend' => [
-        'key' => env('RESEND_API_KEY'),
+        'token' => env('POSTMARK_TOKEN'),
     ],
 
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+    ],
+
+    'resend' => [
+        'key' => env('RESEND_KEY'),
     ],
 
     'slack' => [
@@ -35,11 +35,29 @@ return [
         ],
     ],
 
+    // --- INTEGRAÇÃO IDEALISTA ---
     'idealista' => [
-        'key' => env('IDEALISTA_API_KEY'),
+        'api_key' => env('IDEALISTA_API_KEY'),
         'secret' => env('IDEALISTA_SECRET'),
-        'feed_key' => env('IDEALISTA_FEED_KEY'), // <--- NOVO OBRIGATÓRIO
-        'base_url' => env('IDEALISTA_BASE_URL', 'https://partners-sandbox.idealista.pt'),
+        'base_url' => env('IDEALISTA_BASE_URL', 'https://api.idealista.com'),
+        'feed_key' => env('IDEALISTA_FEED_KEY'), // Código do cliente para exportação
+    ],
+
+    // --- INTEGRAÇÃO CRM HIGHLEVEL (GO HIGH LEVEL) ---
+    'ghl' => [
+        'api_key'     => env('GHL_API_KEY'),
+        'location_id' => env('GHL_LOCATION_ID'),
+        'api_version' => env('GHL_API_VERSION', '2021-07-28'),
+        
+        'pipelines' => [
+            'leads_id'   => env('GHL_PIPELINE_LEADS_ID'),
+            'credit_id'  => env('GHL_PIPELINE_CREDIT_ID'),
+        ],
+        
+        'stages' => [
+            'leads_new_id'   => env('GHL_STAGE_LEADS_NEW_ID'),
+            'credit_new_id'  => env('GHL_STAGE_CREDIT_NEW_ID'),
+        ],
     ],
 
 ];

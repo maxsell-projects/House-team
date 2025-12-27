@@ -82,6 +82,7 @@
 
                             {{-- IMPLEMENTAÇÃO DO DROPDOWN DE CONSULTORES (EDIT) --}}
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-50">
+                                {{-- LADO ESQUERDO: CONSULTOR --}}
                                 <div>
                                     <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Consultor Responsável</label>
                                     
@@ -129,6 +130,13 @@
                                         </div>
                                     </div>
                                     <p class="text-[10px] text-slate-400 mt-1 ml-1">Se vazio, usará o WhatsApp padrão nas páginas.</p>
+                                </div>
+
+                                {{-- LADO DIREITO: CÓDIGO CRM [NOVO] --}}
+                                <div>
+                                    <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Código CRM (Ref)</label>
+                                    <input type="text" name="crm_code" value="{{ old('crm_code', $property->crm_code) }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="Ex: IMO-1234">
+                                    <p class="text-[10px] text-slate-400 mt-1 ml-1">Referência para integração com HighLevel.</p>
                                 </div>
                             </div>
                             
@@ -200,6 +208,8 @@
                                         <option value="A" {{ old('energy_rating', $property->energy_rating) == 'A' ? 'selected' : '' }}>A</option>
                                         <option value="B" {{ old('energy_rating', $property->energy_rating) == 'B' ? 'selected' : '' }}>B</option>
                                         <option value="C" {{ old('energy_rating', $property->energy_rating) == 'C' ? 'selected' : '' }}>C</option>
+                                        <option value="D" {{ old('energy_rating', $property->energy_rating) == 'D' ? 'selected' : '' }}>D</option>
+                                        <option value="E" {{ old('energy_rating', $property->energy_rating) == 'E' ? 'selected' : '' }}>E</option>
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>

@@ -40,7 +40,7 @@ Route::get('/ferramentas/simulador-credito', function () {
     return view('tools.credit');
 })->name('tools.credit');
 
-// [NOVO] Rota para processar o envio da Lead de Crédito
+// Rota para processar o envio da Lead de Crédito
 Route::post('/ferramentas/simulador-credito/enviar', [ToolsController::class, 'sendCreditSimulation'])
     ->name('tools.credit.send');
 
@@ -50,7 +50,7 @@ Route::get('/ferramentas/imt', function () {
     return view('tools.imt');
 })->name('tools.imt');
 
-// [NOVO] Rota para processar o envio da Lead de IMT
+// Rota para processar o envio da Lead de IMT
 Route::post('/ferramentas/imt/enviar', [ToolsController::class, 'sendImtSimulation'])
     ->name('tools.imt.send');
 
