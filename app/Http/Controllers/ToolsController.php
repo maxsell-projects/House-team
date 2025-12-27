@@ -8,6 +8,8 @@ use App\Services\HighLevelService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; // <--- Importante
+use Illuminate\Support\Str; // <--- Importante
 
 class ToolsController extends Controller
 {
@@ -20,13 +22,24 @@ class ToolsController extends Controller
         $this->crmService = $crmService;
     }
 
-    public function showGainsSimulator() { return view('tools.gains'); }
-    public function showCreditSimulator() { return view('tools.credit'); }
-    public function showImtSimulator() { return view('tools.imt'); }
+    public function showGainsSimulator()
+    {
+        return view('tools.gains');
+    }
+
+    public function showCreditSimulator()
+    {
+        return view('tools.credit');
+    }
+
+    public function showImtSimulator()
+    {
+        return view('tools.imt');
+    }
 
     public function calculateGains(Request $request)
     {
-        // (Validação mantida igual, só resumindo para caber aqui)
+        // Validação (Mantida igual)
         $validated = $request->validate([
             'acquisition_value' => 'required|numeric|min:0',
             'acquisition_year' => 'required|integer|min:1900|max:2025',
@@ -74,26 +87,69 @@ class ToolsController extends Controller
                 'name'  => $validated['lead_name'],
                 'email' => $validated['lead_email'],
                 'tags'  => ['Simulador Mais-Valias', 'Lead Site'],
-                'description' => $description // Enviando resumo
+                'description' => $description
             ], 'credit');
         }
 
         return response()->json($results);
     }
 
+    // --- AQUI ESTÁ A ALTERAÇÃO PRINCIPAL ---
     public function sendCreditSimulation(Request $request)
     {
         $data = $request->validate([
-            'propertyValue' => 'required', 'loanAmount' => 'required', 'years' => 'required',
-            'tan' => 'required', 'monthlyPayment' => 'required', 'mtic' => 'required',
-            'lead_name' => 'required|string', 'lead_email' => 'required|email'
+            'propertyValue' => 'required',
+            'loanAmount' => 'required',
+            'years' => 'required',
+            'tan' => 'required',
+            'monthlyPayment' => 'required',
+            'mtic' => 'required',
+            'lead_name' => 'required|string',
+            'lead_email' => 'required|email'
         ]);
 
-        $this->sendEmailWithPdf($data['lead_email'], $data['lead_name'], 'Simulação Crédito Habitação', 'pdfs.simple-report', ['title' => 'Relatório Crédito Habitação', 'data' => $data]);
+        // 1. Preparar Dados e Gerar o PDF na Memória
+        $viewData = [
+            'title' => 'Relatório Crédito Habitação', 
+            'data' => $data,
+            'date' => date('d/m/Y')
+        ];
+        
+        $pdf = Pdf::loadView('pdfs.simple-report', $viewData);
+        $pdfContent = $pdf->output();
 
-        // CRM - Simulador Crédito
-        $description = "Simulação Crédito:\nImóvel: {$data['propertyValue']}€\nEmpréstimo: {$data['loanAmount']}€\nMensalidade: {$data['monthlyPayment']}€";
+        // 2. Enviar Email (Usando o conteúdo gerado)
+        try {
+            Mail::send('emails.simulation-lead', ['name' => $data['lead_name'], 'simulationType' => 'Simulação Crédito Habitação'], function ($message) use ($data, $pdfContent) {
+                $message->to($data['lead_email'])
+                    ->subject('Simulação Crédito Habitação - Resultado Detalhado')
+                    ->attachData($pdfContent, 'simulacao.pdf');
+            });
+        } catch (\Exception $e) {
+            Log::error('Erro ao enviar email de simulação: ' . $e->getMessage());
+        }
 
+        // 3. Salvar o PDF no Disco Público para criar um Link
+        $fileName = 'credito_' . time() . '_' . Str::random(6) . '.pdf';
+        $filePath = 'simulations/' . $fileName; // Salva na pasta 'storage/app/public/simulations'
+        
+        try {
+            Storage::disk('public')->put($filePath, $pdfContent);
+            $pdfUrl = asset('storage/' . $filePath); // Gera o link público (Ex: https://site.com/storage/...)
+
+            // 4. Adicionar o Link na Descrição do CRM
+            $description = "Simulação Crédito:\n" .
+                           "Imóvel: {$data['propertyValue']}€\n" .
+                           "Empréstimo: {$data['loanAmount']}€\n" .
+                           "Mensalidade: {$data['monthlyPayment']}€\n\n" .
+                           "📥 PDF RELATÓRIO: " . $pdfUrl;
+        } catch (\Exception $e) {
+            Log::error('Erro ao salvar PDF: ' . $e->getMessage());
+            // Se falhar o save, manda sem o link
+            $description = "Simulação Crédito:\nImóvel: {$data['propertyValue']}€\nEmpréstimo: {$data['loanAmount']}€\n(Erro ao gerar link do PDF)";
+        }
+
+        // 5. Enviar para o CRM
         $this->sendToCrm([
             'name'  => $data['lead_name'],
             'email' => $data['lead_email'],
@@ -107,9 +163,14 @@ class ToolsController extends Controller
     public function sendImtSimulation(Request $request)
     {
         $data = $request->validate([
-            'propertyValue' => 'required', 'location' => 'required', 'purpose' => 'required',
-            'finalIMT' => 'required', 'finalStamp' => 'required', 'totalPayable' => 'required',
-            'lead_name' => 'required|string', 'lead_email' => 'required|email'
+            'propertyValue' => 'required',
+            'location' => 'required',
+            'purpose' => 'required',
+            'finalIMT' => 'required',
+            'finalStamp' => 'required',
+            'totalPayable' => 'required',
+            'lead_name' => 'required|string',
+            'lead_email' => 'required|email'
         ]);
 
         $this->sendEmailWithPdf($data['lead_email'], $data['lead_name'], 'Simulação IMT e Selo', 'pdfs.simple-report', ['title' => 'Relatório IMT e Imposto de Selo', 'data' => $data]);
@@ -182,7 +243,7 @@ class ToolsController extends Controller
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
                 'tags'  => $crmTags,
-                'description' => implode("\n", $descriptionParts) // Junta tudo numa nota só
+                'description' => implode("\n", $descriptionParts)
             ], 'lead');
 
             return back()->with('success', 'O seu pedido foi enviado com sucesso! Entraremos em contacto brevemente.');
