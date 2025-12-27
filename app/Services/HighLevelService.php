@@ -45,31 +45,50 @@ class HighLevelService
                 ->post("{$this->baseUrl}/contacts/", $payload);
 
             if ($response->successful()) {
+                $contactId = $response->json('contact.id');
+                Log::info('GHL: Contato OK. ID: ' . $contactId);
                 return $response->json('contact');
             }
-            Log::error('GHL: Erro contato', ['body' => $response->body()]);
+
+            Log::error('GHL: Erro ao criar contato', ['body' => $response->body()]);
             return null;
+
         } catch (\Exception $e) {
-            Log::error('GHL: Exception contato', ['msg' => $e->getMessage()]);
+            Log::error('GHL: Exceção Contato', ['msg' => $e->getMessage()]);
             return null;
         }
     }
 
-    // --- NOVA FUNÇÃO: ADICIONAR NOTA (MENSAGEM/DESCRIÇÃO) ---
+    // --- AQUI ESTÁ O DIAGNÓSTICO DA NOTA ---
     public function addNote(string $contactId, string $noteContent)
     {
-        if (empty($noteContent)) return;
+        if (empty($noteContent)) {
+            Log::warning('GHL: Tentativa de criar nota vazia para ID ' . $contactId);
+            return;
+        }
+
+        Log::info("GHL: Tentando criar NOTA para o ID {$contactId}. Tamanho do texto: " . strlen($noteContent));
 
         try {
-            Http::withHeaders($this->getHeaders())
+            $response = Http::withHeaders($this->getHeaders())
                 ->post("{$this->baseUrl}/contacts/{$contactId}/notes", [
                     'body' => $noteContent
                 ]);
+
+            if ($response->successful()) {
+                Log::info('GHL: NOTA CRIADA COM SUCESSO!');
+            } else {
+                // AQUI VAMOS VER PORQUE NÃO FOI
+                Log::error('GHL: ERRO AO CRIAR NOTA. Status: ' . $response->status(), [
+                    'resposta_crm' => $response->body()
+                ]);
+            }
+
         } catch (\Exception $e) {
-            Log::error('GHL: Erro ao adicionar nota', ['msg' => $e->getMessage()]);
+            Log::error('GHL: EXCEÇÃO AO CRIAR NOTA', ['msg' => $e->getMessage()]);
         }
     }
-    // --------------------------------------------------------
+    // ---------------------------------------
 
     public function createOpportunity(string $contactId, array $data, string $type = 'lead')
     {
@@ -91,7 +110,7 @@ class HighLevelService
             'contactId'  => $contactId,
             'title'      => ($data['name'] ?? 'Cliente') . $titleSuffix,
             'status'     => 'open',
-            'source'     => 'Site House Team', // Forçando a fonte
+            'source'     => 'Site House Team', 
         ];
 
         if (!empty($data['property_price'])) {
@@ -103,8 +122,9 @@ class HighLevelService
                 ->post("{$this->baseUrl}/pipelines/{$pipelineId}/opportunities", $payload);
 
             return $response->successful();
+
         } catch (\Exception $e) {
-            Log::error('GHL: Exception oportunidade', ['msg' => $e->getMessage()]);
+            Log::error('GHL: Exceção Oportunidade', ['msg' => $e->getMessage()]);
             return false;
         }
     }
