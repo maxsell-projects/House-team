@@ -37,7 +37,7 @@ return [
 
     // --- INTEGRAÇÃO IDEALISTA ---
     'idealista' => [
-        'api_key' => env('IDEALISTA_API_KEY'),
+        'key' => env('IDEALISTA_API_KEY'),
         'secret' => env('IDEALISTA_SECRET'),
         'base_url' => env('IDEALISTA_BASE_URL', 'https://api.idealista.com'),
         'feed_key' => env('IDEALISTA_FEED_KEY'), // Código do cliente para exportação
