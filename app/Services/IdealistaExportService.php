@@ -68,6 +68,28 @@ class IdealistaExportService extends AbstractIdealistaService
     }
 
     /**
+     * Desativa/Remove um imóvel (Fase 3 - Delete/Deactivate)
+     * Exigido para o teste Property16
+     */
+    public function deactivateProperty($idealistaId)
+    {
+        $headers = $this->getHeaders('write');
+        
+        Log::info("Desativando Imóvel Idealista ID {$idealistaId}...");
+
+        // Endpoint DELETE: /v1/properties/{id}
+        $response = Http::withHeaders($headers)
+            ->delete("{$this->baseUrl}/v1/properties/{$idealistaId}");
+
+        if ($response->failed()) {
+            Log::error('Erro API Idealista (Delete): ' . $response->body());
+            throw new Exception('Erro ao desativar imóvel: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    /**
      * Envia as imagens do imóvel
      */
     public function uploadImages($idealistaId, $localProperty)
@@ -82,6 +104,7 @@ class IdealistaExportService extends AbstractIdealistaService
         $imagesPayload = [];
         foreach ($images as $img) {
             // OBS: Em localhost o Idealista não consegue baixar a imagem, mas enviamos a URL mesmo assim.
+            // Para a certificação, o Command usa URLs externas (Unsplash).
             $fullUrl = asset('storage/' . $img->path);
             
             $imagesPayload[] = [
