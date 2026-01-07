@@ -57,7 +57,7 @@
 
         <div class="pt-8 border-t border-white/10 flex flex-col items-center gap-4">
             <p class="text-slate-500 text-xs text-center">
-                &copy; {{ date('Y') }} House Team Consultores. Todos os direitos reservados.
+                &copy; {{ date('Y') }} House Team Consultores. Todos os direitos reservados. <span class="mx-1">|</span> NIF: 508615631
             </p>
             
             {{-- Links Legais Adicionados --}}

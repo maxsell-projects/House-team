@@ -150,7 +150,7 @@
             <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="text-center md:text-left">
                     <p class="text-slate-500 text-xs uppercase tracking-widest">
-                        &copy; {{ date('Y') }} House Team Consultores. Todos os direitos reservados.
+                        &copy; {{ date('Y') }} House Team Consultores. Todos os direitos reservados. <span class="mx-1">|</span> NIF: 508615631
                     </p>
                     {{-- LINKS LEGAIS ADICIONADOS --}}
                     <div class="flex flex-wrap justify-center md:justify-start gap-4 text-[10px] uppercase tracking-wider text-slate-500 mt-2">
