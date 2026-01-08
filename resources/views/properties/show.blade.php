@@ -150,7 +150,6 @@
                         @if($property->is_furnished) <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl"><span class="text-slate-600 font-bold text-sm">{{ __('portfolio.feat_furnished') }}</span><div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</div></div> @endif
                         @if($property->is_kitchen_equipped) <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl"><span class="text-slate-600 font-bold text-sm">{{ __('portfolio.feat_kitchen') }}</span><div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</div></div> @endif
                         
-                        {{-- Detalhes Adicionais --}}
                         @if($property->floor) <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl"><span class="text-slate-400 font-bold text-xs uppercase">{{ __('portfolio.feat_floor') }}</span><span class="text-ht-navy font-bold text-sm">{{ $property->floor }}</span></div> @endif
                         @if($property->orientation) <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl"><span class="text-slate-400 font-bold text-xs uppercase">{{ __('portfolio.feat_orientation') }}</span><span class="text-ht-navy font-bold text-sm">{{ $property->orientation }}</span></div> @endif
                         @if($property->energy_rating) <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl"><span class="text-slate-400 font-bold text-xs uppercase">{{ __('portfolio.feat_energy') }}</span><span class="bg-ht-accent text-white px-3 py-1 rounded text-xs font-bold">{{ $property->energy_rating }}</span></div> @endif
@@ -195,7 +194,10 @@
                         @if($property->consultant)
                             <div class="relative z-10 bg-white/5 p-6 rounded-2xl border border-white/10 mb-6">
                                 <div class="flex items-center gap-4 mb-4">
-                                    <img src="{{ asset('img/team/' . $property->consultant->photo) }}" class="w-16 h-16 rounded-full object-cover border-2 border-ht-accent">
+                                    {{-- CORREÇÃO DO 404: Usando image_url para bater com o layout de equipa --}}
+                                    <img src="{{ $property->consultant->image_url ?? asset('img/team/' . $property->consultant->photo) }}" 
+                                         class="w-16 h-16 rounded-full object-cover border-2 border-ht-accent"
+                                         onerror="this.src='{{ asset('img/logo.png') }}'">
                                     <div>
                                         <p class="text-xs text-ht-accent font-bold uppercase tracking-wider">{{ __('portfolio.consultant_label') }}</p>
                                         <p class="font-bold text-lg leading-tight">{{ $property->consultant->name }}</p>
