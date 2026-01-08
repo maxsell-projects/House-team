@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    {{-- ADICIONADO: FAVICON USANDO O LOGO.PNG --}}
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+
     <title>@yield('title', 'House Team Consultores')</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -72,13 +76,6 @@
                         <a href="{{ route('tools.imt') }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-accent transition text-center">{{ __('menu.imt') }}</a>
                     </div>
                 </div>
-
-                {{-- Language Switcher (Desktop) --}}
-                <div class="flex items-center gap-1 border-l border-white/20 pl-4 ml-2">
-                    <a href="{{ url('lang/pt') }}" class="text-[10px] font-bold uppercase {{ app()->getLocale() == 'pt' ? 'text-ht-accent' : 'text-white hover:text-slate-300' }}">PT</a>
-                    <span class="text-white/30 text-[10px]">|</span>
-                    <a href="{{ url('lang/en') }}" class="text-[10px] font-bold uppercase {{ app()->getLocale() == 'en' ? 'text-ht-accent' : 'text-white hover:text-slate-300' }}">EN</a>
-                </div>
             </div>
 
             <div class="hidden md:block ml-4">
@@ -91,12 +88,6 @@
                  <span class="text-white text-xs font-bold uppercase tracking-widest">{{ __('menu.label_menu') }}</span>
                  
                  <div class="flex items-center gap-3">
-                    {{-- Language Switcher (Mobile) --}}
-                    <div class="flex items-center gap-2">
-                         <a href="{{ url('lang/pt') }}" class="text-[10px] font-bold uppercase {{ app()->getLocale() == 'pt' ? 'text-ht-accent' : 'text-white' }}">PT</a>
-                         <a href="{{ url('lang/en') }}" class="text-[10px] font-bold uppercase {{ app()->getLocale() == 'en' ? 'text-ht-accent' : 'text-white' }}">EN</a>
-                    </div>
-                    
                     <button @click="isOpen = !isOpen" class="text-white p-1 rounded-full hover:bg-white/10 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>

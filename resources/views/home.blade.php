@@ -10,11 +10,23 @@
     
     <div class="absolute inset-0 bg-gradient-to-b from-ht-navy/80 via-ht-navy/20 to-ht-navy"></div>
 
-    {{-- LOGO --}}
-    <div class="absolute top-6 left-6 md:top-10 md:left-10 z-30" data-aos="fade-right">
+    {{-- LOGO - CORRIGIDO: top-28 no mobile para descer da header fixed --}}
+    <div class="absolute top-28 left-6 md:top-10 md:left-10 z-30" data-aos="fade-right">
         <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center p-4 shadow-2xl ring-4 ring-white/30 backdrop-blur-md">
             <img src="{{ asset('img/logo.png') }}" alt="House Team Logo" class="w-full h-full object-contain">
         </div>
+    </div>
+
+    {{-- SELETOR DE IDIOMA --}}
+    <div class="absolute top-28 right-6 md:top-10 md:right-10 z-30 flex gap-3" data-aos="fade-left">
+        <a href="{{ route('lang.switch', 'pt') }}" 
+           class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {{ app()->getLocale() == 'pt' ? 'bg-ht-accent text-white shadow-lg shadow-blue-500/50' : 'bg-white/10 text-white/70 hover:bg-white/20 backdrop-blur-md border border-white/10' }}">
+            PT
+        </a>
+        <a href="{{ route('lang.switch', 'en') }}" 
+           class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {{ app()->getLocale() == 'en' ? 'bg-ht-accent text-white shadow-lg shadow-blue-500/50' : 'bg-white/10 text-white/70 hover:bg-white/20 backdrop-blur-md border border-white/10' }}">
+            EN
+        </a>
     </div>
 
     <div class="relative z-10 container mx-auto px-6 text-center" data-aos="fade-up">
@@ -96,12 +108,10 @@
                             </span>
                         </div>
                         
-                        {{-- Título Limpo (strip_tags) --}}
                         <h4 class="text-lg font-bold mb-2 line-clamp-1 leading-tight text-slate-200 group-hover:text-white">
                             {{ strip_tags($property->title) }}
                         </h4>
                         
-                        {{-- Localização Limpa (strip_tags) --}}
                         <p class="text-xs text-slate-400 font-medium mb-6 flex items-center gap-2">
                             <svg class="w-3 h-3 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             {{ strip_tags($property->location) }}
@@ -297,7 +307,6 @@
                         
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
                             @php
-                                // MAP: Valor DB => Chave de Tradução
                                 $featuresMap = [
                                     'Terraço' => 'feat_terrace', 
                                     'Mobilado' => 'feat_furnished', 
@@ -370,7 +379,8 @@
 
                     <div class="mt-8 flex justify-between">
                         <button type="button" @click="step--" x-show="step > 1" class="text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-ht-navy">← {{ __('valuation.btn_back') }}</button>
-                        <div x-show="step === 1"></div> <button type="button" @click="step++" x-show="step < 3" class="bg-ht-navy text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-ht-accent transition shadow-lg">
+                        <div x-show="step === 1"></div> 
+                        <button type="button" @click="step++" x-show="step < 3" class="bg-ht-navy text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-ht-accent transition shadow-lg">
                             {{ __('valuation.btn_next') }}
                         </button>
                         

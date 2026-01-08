@@ -501,6 +501,7 @@
     "property_status.available": "Available",
     "property_status.sold": "Sold",
     "property_status.reserved": "Reserved",
-    "property_status.active": "Active"
+    "property_status.active": "Active",
+    "portfolio.zoom_image": "Expand Photo"
 }
 

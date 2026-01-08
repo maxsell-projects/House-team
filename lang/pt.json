@@ -25,7 +25,7 @@
   "hero.gratitude": "GRATIDÃO",
   "hero.freedom": "LIBERDADE",
   "hero.trust": "CONFIANÇA",
-  "hero.btn_valuation": "Avaliar Meu Imóvel",
+  "hero.btn_valuation": "Avaliar o Meu Imóvel",
   "hero.btn_portfolio": "Ver Portfólio",
 
   "home.opportunities": "Oportunidades",
@@ -504,6 +504,7 @@
     "property_status.available": "Disponível",
     "property_status.sold": "Vendido",
     "property_status.reserved": "Reservado",
-    "property_status.active": "Ativo"
+    "property_status.active": "Ativo",
+    "portfolio.zoom_image": "Ampliar Foto"
 
 }
