@@ -8,19 +8,19 @@ use App\Models\Consultant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB; // <--- 1. Import necessário
+use Illuminate\Support\Facades\DB;
 
 class PropertyController extends Controller
 {
     public function index()
     {
-        // <--- 2. Alterado para respeitar a ordenação manual no painel
+        // Alterado para respeitar a ordenação manual no painel
         $properties = Property::ordered()->paginate(10);
         return view('admin.properties.index', compact('properties'));
     }
 
     /**
-     * <--- 3. Método Novo: Recebe a nova ordem via AJAX e salva no banco
+     * Recebe a nova ordem via AJAX e salva no banco (Drag & Drop na página atual)
      */
     public function reorder(Request $request)
     {
@@ -41,6 +41,25 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => 'error'], 500);
         }
+    }
+
+    /**
+     * NOVO: Move o imóvel para a primeira posição absoluta da lista (todas as páginas).
+     * Resolve o problema da paginação no Drag & Drop.
+     */
+    public function moveToTop(Property $property)
+    {
+        // Encontra o menor valor de ordem atual na tabela inteira
+        // Se a tabela estiver vazia (null), assume 0
+        $minOrder = Property::min('order') ?? 0;
+
+        // Define a ordem deste imóvel para ser menor que o mínimo atual
+        // Ex: Se o mínimo é 1, este vira 0. Se é -10, vira -11.
+        $property->update([
+            'order' => $minOrder - 1
+        ]);
+
+        return back()->with('success', 'Imóvel movido para o topo com sucesso!');
     }
 
     public function create()
@@ -243,7 +262,7 @@ class PropertyController extends Controller
             }
         }
 
-        // <--- 4. Alterado de latest() para ordered() para o site refletir a ordem
+        // Alterado de latest() para ordered() para o site refletir a ordem manual
         $properties = $query->ordered()->paginate(9)->withQueryString();
 
         return view('properties.index', compact('properties'));

@@ -9,79 +9,64 @@ use Illuminate\Http\Request;
 class ConsultantPageController extends Controller
 {
     /**
-     * Carrega a Homepage do Consultor baseada no domínio externo.
-     * Ex: ana.127.0.0.1.nip.io
+     * Carrega a LP via URL: houseteam.pt/{slug}
      */
-    public function index($domain)
+    public function index($slug)
     {
-        // Limpeza: remove porta se existir (ex: :8000) para bater com o banco
-        $domain = preg_replace('/:\d+$/', '', $domain);
-
-        // 1. Tenta encontrar o consultor dono deste domínio
-        $consultant = Consultant::where('domain', $domain)
+        // Procura pelo lp_slug (ex: 'margarida') OU pelo domain (caso uses esse campo provisoriamente)
+        $consultant = Consultant::where(function($query) use ($slug) {
+                            $query->where('lp_slug', $slug)
+                                  ->orWhere('domain', $slug);
+                        })
                         ->where('has_lp', true)
                         ->where('is_active', true)
                         ->first();
 
-        // 2. PROTEÇÃO: Se não achar, 404.
         if (!$consultant) {
             abort(404); 
         }
 
-        // 3. ALTERADO: Carrega TODOS os imóveis visíveis da imobiliária
-        // (Antes carregava apenas deste consultor)
         $properties = $this->getAllProperties();
 
-        // 4. Retorna a view da LP
         return view('consultants.landing-page', compact('consultant', 'properties'));
     }
 
     /**
-     * NOVO: Carrega a Homepage para o Modal (Preview Interno).
-     * Usa o ID do consultor, não o domínio.
+     * Preview Interno (Modal). Mantém-se igual.
      */
     public function preview(Consultant $consultant)
     {
-        // Validação de Segurança: Só mostra se tiver LP ativa
         if (!$consultant->has_lp || !$consultant->is_active) {
             abort(404);
         }
-
-        // ALTERADO: Carrega TODOS os imóveis (reutilizando a lógica global)
         $properties = $this->getAllProperties();
-
-        // Retorna a MESMA view, garantindo que o modal seja idêntico ao site real
         return view('consultants.landing-page', compact('consultant', 'properties'));
     }
 
     /**
-     * Mostra um imóvel específico DENTRO do site do consultor.
+     * Detalhe do Imóvel dentro da LP do Consultor
+     * URL: houseteam.pt/{slug}/imovel/{imovel-slug}
      */
-    public function showProperty($domain, $slug)
+    public function showProperty($slug, $propertySlug)
     {
-        $domain = preg_replace('/:\d+$/', '', $domain);
-
-        $consultant = Consultant::where('domain', $domain)
+        // Valida se o consultor existe
+        $consultant = Consultant::where(function($query) use ($slug) {
+                            $query->where('lp_slug', $slug)
+                                  ->orWhere('domain', $slug);
+                        })
                         ->where('has_lp', true)
                         ->firstOrFail();
         
-        // ALTERADO: Removemos a restrição de 'consultant_id'
-        // Agora o consultor pode exibir qualquer imóvel ativo da empresa
-        $property = Property::where('slug', $slug)
-                        // ->where('consultant_id', $consultant->id) // <--- REMOVIDO PARA MOSTRAR GERAL
+        // Busca o imóvel
+        $property = Property::where('slug', $propertySlug)
                         ->where('is_visible', true)
                         ->firstOrFail();
 
         return view('consultants.property-show', compact('consultant', 'property'));
     }
 
-    /**
-     * Método auxiliar privado para buscar imóveis globais
-     * Renomeado para ficar claro que traz tudo.
-     */
     private function getAllProperties()
     {
-        // Retorna todos os imóveis visíveis ordenados (scopeOrdered do Model)
         return Property::where('is_visible', true)
             ->ordered()
             ->get();

@@ -93,10 +93,21 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
+                                
+                                {{-- NOVO: BOTÃO MOVER PARA O TOPO --}}
+                                <form action="{{ route('admin.properties.moveToTop', $property) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 transition-all shadow-sm" title="Mover para o topo (1ª Página)">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                                    </button>
+                                </form>
+
+                                {{-- BOTÃO EDITAR --}}
                                 <a href="{{ route('admin.properties.edit', $property) }}" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-ht-blue hover:border-ht-blue transition-all shadow-sm" title="Editar">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </a>
                                 
+                                {{-- BOTÃO APAGAR --}}
                                 <form action="{{ route('admin.properties.destroy', $property) }}" method="POST" onsubmit="return confirm('Tem a certeza que deseja eliminar este imóvel?');">
                                     @csrf
                                     @method('DELETE')
@@ -140,7 +151,7 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        // Feedback visual opcional (podes adicionar um Toast aqui se tiveres biblioteca)
+                        // Feedback visual opcional
                         console.log('Ordem salva com sucesso!');
                     })
                     .catch(error => {
