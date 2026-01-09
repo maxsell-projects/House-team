@@ -28,8 +28,9 @@ class ConsultantPageController extends Controller
             abort(404); 
         }
 
-        // 3. Carrega os imóveis DESTE consultor
-        $properties = $this->getConsultantProperties($consultant->id);
+        // 3. ALTERADO: Carrega TODOS os imóveis visíveis da imobiliária
+        // (Antes carregava apenas deste consultor)
+        $properties = $this->getAllProperties();
 
         // 4. Retorna a view da LP
         return view('consultants.landing-page', compact('consultant', 'properties'));
@@ -46,8 +47,8 @@ class ConsultantPageController extends Controller
             abort(404);
         }
 
-        // Carrega os imóveis (reutilizando a lógica)
-        $properties = $this->getConsultantProperties($consultant->id);
+        // ALTERADO: Carrega TODOS os imóveis (reutilizando a lógica global)
+        $properties = $this->getAllProperties();
 
         // Retorna a MESMA view, garantindo que o modal seja idêntico ao site real
         return view('consultants.landing-page', compact('consultant', 'properties'));
@@ -64,9 +65,10 @@ class ConsultantPageController extends Controller
                         ->where('has_lp', true)
                         ->firstOrFail();
         
-        // Garante que o imóvel pertence a este consultor
+        // ALTERADO: Removemos a restrição de 'consultant_id'
+        // Agora o consultor pode exibir qualquer imóvel ativo da empresa
         $property = Property::where('slug', $slug)
-                        ->where('consultant_id', $consultant->id)
+                        // ->where('consultant_id', $consultant->id) // <--- REMOVIDO PARA MOSTRAR GERAL
                         ->where('is_visible', true)
                         ->firstOrFail();
 
@@ -74,12 +76,13 @@ class ConsultantPageController extends Controller
     }
 
     /**
-     * Método auxiliar privado para evitar repetição de código na busca de imóveis
+     * Método auxiliar privado para buscar imóveis globais
+     * Renomeado para ficar claro que traz tudo.
      */
-    private function getConsultantProperties($consultantId)
+    private function getAllProperties()
     {
-        return Property::where('consultant_id', $consultantId)
-            ->where('is_visible', true)
+        // Retorna todos os imóveis visíveis ordenados (scopeOrdered do Model)
+        return Property::where('is_visible', true)
             ->ordered()
             ->get();
     }

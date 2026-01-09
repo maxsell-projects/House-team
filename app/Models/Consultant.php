@@ -23,7 +23,7 @@ class Consultant extends Model
         'lp_slug',
         'lp_settings',
         'has_lp',
-        // Redes Sociais (que já existiam)
+        // Redes Sociais
         'facebook',
         'instagram',
         'linkedin',
@@ -33,16 +33,38 @@ class Consultant extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'has_lp' => 'boolean',      // <--- Garante que vem true/false
-        'lp_settings' => 'array',   // <--- Mágica do Laravel: converte JSON para Array automaticamente
+        'has_lp' => 'boolean',
+        'lp_settings' => 'array',
     ];
 
-    // Helper para pegar a foto ou uma default (já tínhamos algo assim ou parecido)
+    /**
+     * Acessor inteligente para a URL da imagem.
+     * Resolve o problema de misturar imagens do Seeder (img/team) com Uploads (storage).
+     */
     public function getImageUrlAttribute()
     {
-        return $this->photo 
-            ? asset('storage/' . $this->photo) 
-            : asset('img/default-avatar.png'); // Ajuste o caminho se necessário
+        // 1. Sem foto definida -> Retorna avatar padrão
+        if (!$this->photo) {
+            return asset('img/default-avatar.png');
+        }
+
+        // 2. Se já for uma URL completa (ex: link externo) -> Retorna a própria URL
+        if (filter_var($this->photo, FILTER_VALIDATE_URL)) {
+            return $this->photo;
+        }
+
+        // 3. Lógica para Imagens do Seeder (Legado)
+        // Se o nome do arquivo NÃO tiver barras (ex: "Hugo.png"), assumimos que é uma imagem estática
+        if (!str_contains($this->photo, '/')) {
+            // Verifica se o arquivo existe fisicamente na pasta public/img/team/
+            if (file_exists(public_path('img/team/' . $this->photo))) {
+                return asset('img/team/' . $this->photo);
+            }
+        }
+
+        // 4. Lógica Padrão (Uploads)
+        // Assume que é um caminho do Storage (ex: "consultants/hash.jpg")
+        return asset('storage/' . $this->photo);
     }
 
     public function properties()

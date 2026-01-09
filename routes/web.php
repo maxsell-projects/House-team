@@ -17,14 +17,14 @@ use App\Http\Controllers\ConsultantPageController; // Importante estar aqui
 
 // Esta regra diz: "Capture qualquer domínio, EXCETO o localhost/127.0.0.1/house-team..."
 Route::domain('{domain}')
-    ->where(['domain' => '^(?!127\.0\.0\.1|localhost|house-team\.127\.0\.0\.1\.nip\.io|assets|img|css|js|storage).*$'])
+    ->where(['domain' => '^(?!127\.0\.0\.1|localhost|house-team\.127\.0\.0\.1\.nip\.io|houseteamconsultores\.pt|www\.houseteamconsultores\.pt|assets|img|css|js|storage).*$'])
     ->group(function () {
         Route::get('/', [ConsultantPageController::class, 'index'])->name('consultant.home');
         Route::get('/imovel/{property:slug}', [ConsultantPageController::class, 'showProperty'])->name('consultant.property');
-        
+    });
         // Se precisar das ferramentas na página do consultor, adicione aqui apontando para o ToolsController
         // Ex: Route::get('/simulador-credito', function() { return view('tools.credit'); });
-    });
+   
 
 
 // ==============================================================================

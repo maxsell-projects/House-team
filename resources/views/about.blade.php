@@ -3,9 +3,9 @@
 @section('content')
 
 {{-- 
-    ATUALIZAÇÃO NO X-DATA:
-    1. Adicionado 'baseUrl' para forçar imagens a carregar da raiz (corrige erro 403).
-    2. Adicionado 'getImageUrl' para tratar caminhos.
+    ATUALIZAÇÃO X-DATA:
+    1. getImageUrl: Agora replica a lógica "híbrida" do Model (img/team vs storage).
+    2. Modal: Passou a usar 'activeMember.photo' em vez de 'image_url'.
 --}}
 <div x-data="{ 
     activeMember: null, 
@@ -13,7 +13,7 @@
     previewModal: false, 
     previewSrc: '',
     previewName: '',
-    baseUrl: '{{ url('/') }}', {{-- Pega a URL raiz do Laravel (ex: http://127.0.0.1:8000) --}}
+    baseUrl: '{{ url('/') }}', 
     
     showMember(member) {
         this.activeMember = member;
@@ -43,13 +43,25 @@
         document.body.style.overflow = 'auto';
     },
 
-    // CORREÇÃO IMAGENS: Garante que a imagem carrega do domínio principal
-    getImageUrl(path) {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        // Remove a barra inicial se houver para não duplicar
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        return this.baseUrl + '/' + cleanPath;
+    /**
+     * Lógica Híbrida de Imagem (Réplica do Model PHP)
+     * Resolve o problema de caminhos mistos (Seeder vs Uploads)
+     */
+    getImageUrl(photo) {
+        if (!photo) return this.baseUrl + '/img/default-avatar.png';
+        
+        // 1. URL Externa
+        if (photo.startsWith('http')) return photo;
+
+        // 2. Se NÃO tiver barra, é imagem do Seeder -> pasta 'img/team/'
+        if (photo.indexOf('/') === -1) {
+            return this.baseUrl + '/img/team/' + photo;
+        }
+
+        // 3. Se TIVER barra, é upload -> pasta 'storage/'
+        // Remove barra inicial se houver para evitar duplicar
+        const cleanPath = photo.startsWith('/') ? photo.substring(1) : photo;
+        return this.baseUrl + '/storage/' + cleanPath;
     },
 
     getSocialLink(platform, value) {
@@ -98,7 +110,7 @@
                     
                     <div class="relative w-56 h-56 md:w-72 md:h-72 mx-auto rounded-full p-2 bg-white shadow-2xl ring-1 ring-slate-100">
                         <div class="w-full h-full rounded-full overflow-hidden border-4 border-slate-50 relative">
-                            {{-- CORREÇÃO PHP: url() força caminho absoluto --}}
+                            {{-- PHP: Aqui usa o accessor image_url normalmente --}}
                             <img src="{{ url($leader->image_url) }}" 
                                  alt="{{ $leader->name }}" 
                                  class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700 ease-out">
@@ -148,7 +160,7 @@
 
                             <div class="w-32 h-32 mx-auto rounded-full p-1 border border-slate-200 group-hover:border-ht-accent transition-colors duration-300 mb-6 bg-white relative">
                                 <div class="w-full h-full rounded-full overflow-hidden relative">
-                                    {{-- CORREÇÃO PHP: url() aqui também --}}
+                                    {{-- PHP: Aqui usa o accessor image_url normalmente --}}
                                     <img src="{{ url($member->image_url) }}" 
                                          class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transform group-hover:scale-110 transition duration-500">
                                 </div>
@@ -205,8 +217,8 @@
             {{-- Left Side: Image --}}
             <div class="md:w-5/12 bg-slate-100 relative h-72 md:h-auto shrink-0">
                 <template x-if="activeMember">
-                    {{-- CORREÇÃO JS: Usa a função getImageUrl --}}
-                    <img :src="getImageUrl(activeMember.image_url)" 
+                    {{-- CORREÇÃO JS: Usa 'photo' (atributo real) e deixa o JS calcular o caminho correto --}}
+                    <img :src="getImageUrl(activeMember.photo)" 
                          class="w-full h-full object-cover absolute inset-0">
                 </template>
                 <div class="absolute inset-0 bg-gradient-to-t from-ht-navy/90 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-white/10"></div>
@@ -253,8 +265,8 @@
                         <div class="space-y-4">
                             <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">{{ __('about.modal_contact_title') }}</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <a x-show="activeMember.phone"
-                                   :href="'https://wa.me/' + (activeMember.phone ? activeMember.phone.replace(/[^0-9]/g, '') : '')" 
+                                <a x-show="activeMember && activeMember.phone"
+                                   :href="'https://wa.me/' + (activeMember && activeMember.phone ? activeMember.phone.replace(/[^0-9]/g, '') : '')" 
                                    target="_blank"
                                    class="group flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#128C7E] text-white py-4 px-6 rounded-xl font-bold transition-all shadow-lg hover:shadow-green-500/30 transform hover:-translate-y-0.5">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
@@ -262,7 +274,7 @@
                                 </a>
 
                                 <a :href="'mailto:' + activeMember.email" 
-                                   x-show="activeMember.email"
+                                   x-show="activeMember && activeMember.email"
                                    class="group flex items-center justify-center gap-3 bg-ht-navy hover:bg-ht-blue text-white py-4 px-6 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-0.5">
                                     <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                     <span>{{ __('about.btn_email') }}</span>
@@ -271,7 +283,7 @@
                         </div>
 
                         <div class="mt-8 pt-8 border-t border-slate-100" 
-                             x-show="activeMember.facebook || activeMember.instagram || activeMember.linkedin || activeMember.tiktok">
+                             x-show="activeMember && (activeMember.facebook || activeMember.instagram || activeMember.linkedin || activeMember.tiktok)">
                             <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4">{{ __('about.modal_social_title') }}</h4>
                             <div class="flex gap-4">
                                 <a x-show="activeMember.instagram" :href="getSocialLink('instagram', activeMember.instagram)" target="_blank" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-red-500 hover:to-purple-500 hover:text-white transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1">
@@ -329,7 +341,7 @@
                 </div>
                 
                 <div class="flex items-center gap-4">
-                    {{-- CORREÇÃO AQUI: Proteção contra null domain --}}
+                    {{-- Proteção JS para URL Externa --}}
                     <a x-show="activeMember && activeMember.domain" 
                        :href="activeMember ? 'http://' + activeMember.domain : '#'" 
                        target="_blank" 
