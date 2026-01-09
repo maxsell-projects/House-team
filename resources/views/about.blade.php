@@ -3,9 +3,9 @@
 @section('content')
 
 {{-- 
-    ATUALIZAÇÃO X-DATA:
-    1. getImageUrl: Agora replica a lógica "híbrida" do Model (img/team vs storage).
-    2. Modal: Passou a usar 'activeMember.photo' em vez de 'image_url'.
+    CORREÇÃO X-DATA:
+    Adicionei a função 'getSiteUrl' para corrigir o link do botão "Abrir em nova aba".
+    Agora ele gera 'houseteam.pt/margarida' em vez de 'http://margarida'.
 --}}
 <div x-data="{ 
     activeMember: null, 
@@ -43,25 +43,39 @@
         document.body.style.overflow = 'auto';
     },
 
-    /**
-     * Lógica Híbrida de Imagem (Réplica do Model PHP)
-     * Resolve o problema de caminhos mistos (Seeder vs Uploads)
-     */
     getImageUrl(photo) {
         if (!photo) return this.baseUrl + '/img/default-avatar.png';
-        
-        // 1. URL Externa
         if (photo.startsWith('http')) return photo;
-
-        // 2. Se NÃO tiver barra, é imagem do Seeder -> pasta 'img/team/'
         if (photo.indexOf('/') === -1) {
             return this.baseUrl + '/img/team/' + photo;
         }
-
-        // 3. Se TIVER barra, é upload -> pasta 'storage/'
-        // Remove barra inicial se houver para evitar duplicar
         const cleanPath = photo.startsWith('/') ? photo.substring(1) : photo;
         return this.baseUrl + '/storage/' + cleanPath;
+    },
+
+    /**
+     * NOVO: Gera a URL correta para o site do consultor
+     * Resolve o erro de DNS ao usar slugs simples (ex: 'margarida')
+     */
+    getSiteUrl(member) {
+        if (!member) return '#';
+
+        // 1. Preferência: Slug definido (MVP: houseteam.pt/margarida)
+        if (member.lp_slug) {
+            return this.baseUrl + '/' + member.lp_slug;
+        }
+
+        // 2. Se o campo domain tiver pontos (ex: margarida.com), é externo
+        if (member.domain && member.domain.includes('.')) {
+            return member.domain.startsWith('http') ? member.domain : 'https://' + member.domain;
+        }
+
+        // 3. Fallback: Se o domain for simples (ex: 'margarida'), trata como slug interno
+        if (member.domain) {
+            return this.baseUrl + '/' + member.domain;
+        }
+
+        return '#';
     },
 
     getSocialLink(platform, value) {
@@ -110,7 +124,6 @@
                     
                     <div class="relative w-56 h-56 md:w-72 md:h-72 mx-auto rounded-full p-2 bg-white shadow-2xl ring-1 ring-slate-100">
                         <div class="w-full h-full rounded-full overflow-hidden border-4 border-slate-50 relative">
-                            {{-- PHP: Aqui usa o accessor image_url normalmente --}}
                             <img src="{{ url($leader->image_url) }}" 
                                  alt="{{ $leader->name }}" 
                                  class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700 ease-out">
@@ -160,7 +173,6 @@
 
                             <div class="w-32 h-32 mx-auto rounded-full p-1 border border-slate-200 group-hover:border-ht-accent transition-colors duration-300 mb-6 bg-white relative">
                                 <div class="w-full h-full rounded-full overflow-hidden relative">
-                                    {{-- PHP: Aqui usa o accessor image_url normalmente --}}
                                     <img src="{{ url($member->image_url) }}" 
                                          class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transform group-hover:scale-110 transition duration-500">
                                 </div>
@@ -217,7 +229,6 @@
             {{-- Left Side: Image --}}
             <div class="md:w-5/12 bg-slate-100 relative h-72 md:h-auto shrink-0">
                 <template x-if="activeMember">
-                    {{-- CORREÇÃO JS: Usa 'photo' (atributo real) e deixa o JS calcular o caminho correto --}}
                     <img :src="getImageUrl(activeMember.photo)" 
                          class="w-full h-full object-cover absolute inset-0">
                 </template>
@@ -341,9 +352,12 @@
                 </div>
                 
                 <div class="flex items-center gap-4">
-                    {{-- Proteção JS para URL Externa --}}
+                    {{-- 
+                        CORREÇÃO AQUI: 
+                        Usa a função getSiteUrl que criámos acima para garantir links corretos. 
+                    --}}
                     <a x-show="activeMember && activeMember.domain" 
-                       :href="activeMember ? 'http://' + activeMember.domain : '#'" 
+                       :href="getSiteUrl(activeMember)" 
                        target="_blank" 
                        class="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ht-accent hover:text-white transition">
                         Abrir em nova aba <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
