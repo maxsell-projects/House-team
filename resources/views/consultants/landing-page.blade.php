@@ -56,17 +56,13 @@
                     
                     <div class="relative z-10 overflow-hidden shadow-2xl">
                         {{-- 
-                            ATENÇÃO AQUI: 
-                            Caminho atualizado para a foto específica. 
-                            Nota: Evite espaços em nomes de arquivos (use team_margarida.png se possível),
-                            mas o browser geralmente entende com espaço também.
+                            CORREÇÃO IMPORTANTE:
+                            Uso o 'image_url' do model que corrigimos antes.
+                            Ele lida automaticamente se é 'margarida.png' (seeder) ou upload novo.
                         --}}
-                        <<div class="relative z-10 overflow-hidden shadow-2xl">
-    {{-- CAMINHO CORRIGIDO: pasta 'team' dentro de 'img' --}}
-    <img src="{{ asset('img/team/margarida.png') }}" 
-         alt="{{ $consultant->name }}" 
-         class="w-full h-auto object-cover grayscale-[20%] sepia-[10%] hover:grayscale-0 transition duration-1000 ease-out">
-</div>
+                        <img src="{{ $consultant->image_url }}" 
+                             alt="{{ $consultant->name }}" 
+                             class="w-full h-auto object-cover grayscale-[20%] sepia-[10%] hover:grayscale-0 transition duration-1000 ease-out">
                     </div>
                 </div>
             </div>
@@ -132,7 +128,12 @@
             @if($properties->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
                     @foreach($properties as $property)
-                        <a href="{{ route('consultant.property', ['domain' => request()->getHost(), 'property' => $property->slug]) }}" class="group block">
+                        {{-- 
+                             CORREÇÃO DE ROTA (CRÍTICO):
+                             Substituí 'domain' => request()->getHost() por 'slug' => $consultant->lp_slug.
+                             Isso resolve o erro "Missing required parameter: slug".
+                        --}}
+                        <a href="{{ route('consultant.property', ['slug' => $consultant->lp_slug ?? $consultant->domain ?? 'margarida', 'property' => $property->slug]) }}" class="group block">
                             {{-- Card Imagem --}}
                             <div class="relative overflow-hidden mb-6 shadow-lg border-8 border-white bg-white">
                                 <div class="aspect-w-4 aspect-h-3">
