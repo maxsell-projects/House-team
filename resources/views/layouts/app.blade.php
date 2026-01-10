@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    {{-- ADICIONADO: FAVICON USANDO O LOGO.PNG --}}
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
     <title>@yield('title', 'House Team Consultores')</title>
@@ -25,7 +24,7 @@
                     colors: {
                         'ht-navy': '#020617', 
                         'ht-primary': '#1e3a8a',
-                        'ht-accent': '#dc2626', // Vermelho da marca
+                        'ht-accent': '#dc2626',
                         'ht-dark': '#020617',
                     },
                     boxShadow: {
@@ -62,7 +61,7 @@
             
             <div class="hidden md:flex items-center gap-1">
                 @if(Route::currentRouteName() == 'consultant.home')
-                    {{-- MENU DA CONSULTORA (ONE PAGE - SCROLL) --}}
+                    {{-- MENU DA CONSULTORA (SCROLL INTERNO) --}}
                     <a href="#home" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Início</a>
                     <a href="#about" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Sobre</a>
                     <a href="#testimonials" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Feedback</a>
@@ -145,7 +144,7 @@
         @yield('content')
     </main>
 
-    {{-- RODAPÉ (FOOTER) --}}
+    {{-- RODAPÉ --}}
     <footer class="bg-ht-navy text-white pt-24 pb-12 border-t border-white/5">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12">
