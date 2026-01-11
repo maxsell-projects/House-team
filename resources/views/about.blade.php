@@ -2,11 +2,6 @@
 
 @section('content')
 
-{{-- 
-    CORREÇÃO X-DATA:
-    Adicionei a função 'getSiteUrl' para corrigir o link do botão "Abrir em nova aba".
-    Agora ele gera 'houseteam.pt/margarida' em vez de 'http://margarida'.
---}}
 <div x-data="{ 
     activeMember: null, 
     openModal: false,
@@ -28,6 +23,9 @@
     },
 
     openPreview(id, name) {
+        // Aqui usamos a função getSiteUrl para garantir que o iframe carregue o certo
+        // Mas atenção: alguns sites bloqueiam iframe (X-Frame-Options). 
+        // Se der erro no iframe, é por isso, mas o botão 'Abrir em nova aba' funcionará.
         this.previewSrc = this.baseUrl + '/consultor/preview/' + id;
         this.previewName = name;
         this.openModal = false;
@@ -54,23 +52,25 @@
     },
 
     /**
-     * NOVO: Gera a URL correta para o site do consultor
-     * Resolve o erro de DNS ao usar slugs simples (ex: 'margarida')
+     * CORREÇÃO DE PRIORIDADE:
+     * 1. Verifica DOMÍNIO EXTERNO (casaacasa.pt)
+     * 2. Verifica SLUG INTERNO (houseteam/joao)
      */
     getSiteUrl(member) {
         if (!member) return '#';
 
-        // 1. Preferência: Slug definido (MVP: houseteam.pt/margarida)
-        if (member.lp_slug) {
-            return this.baseUrl + '/' + member.lp_slug;
-        }
-
-        // 2. Se o campo domain tiver pontos (ex: margarida.com), é externo
+        // 1. PRIORIDADE MÁXIMA: Domínio Personalizado (ex: casaacasa.pt)
+        // Se tem domínio E tem um ponto (.), é um site externo real.
         if (member.domain && member.domain.includes('.')) {
             return member.domain.startsWith('http') ? member.domain : 'https://' + member.domain;
         }
 
-        // 3. Fallback: Se o domain for simples (ex: 'margarida'), trata como slug interno
+        // 2. Fallback: Slug Interno (ex: houseteam.pt/margarida)
+        if (member.lp_slug) {
+            return this.baseUrl + '/' + member.lp_slug;
+        }
+
+        // 3. Último caso: Se o campo domain tiver algo sem ponto (legado)
         if (member.domain) {
             return this.baseUrl + '/' + member.domain;
         }
@@ -352,11 +352,7 @@
                 </div>
                 
                 <div class="flex items-center gap-4">
-                    {{-- 
-                        CORREÇÃO AQUI: 
-                        Usa a função getSiteUrl que criámos acima para garantir links corretos. 
-                    --}}
-                    <a x-show="activeMember && activeMember.domain" 
+                    <a x-show="activeMember && (activeMember.domain || activeMember.lp_slug)" 
                        :href="getSiteUrl(activeMember)" 
                        target="_blank" 
                        class="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ht-accent hover:text-white transition">
@@ -377,6 +373,10 @@
                     </svg>
                 </div>
                 
+                {{-- 
+                    OBS: Se o servidor do novo site (casaacasa.pt) não permitir iframe (X-Frame-Options: SAMEORIGIN),
+                    o preview pode ficar branco. Nesse caso, o botão "Abrir em nova aba" ali em cima é a salvação.
+                --}}
                 <iframe :src="previewSrc" 
                         class="w-full h-full relative z-10 bg-white" 
                         frameborder="0"
