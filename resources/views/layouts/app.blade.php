@@ -26,6 +26,8 @@
                         'ht-primary': '#1e3a8a',
                         'ht-accent': '#dc2626',
                         'ht-dark': '#020617',
+                        // Nossa cor Premium
+                        'ht-gold': '#D4AF37', 
                     },
                     boxShadow: {
                         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
@@ -60,14 +62,14 @@
              :class="isScrolled ? 'py-3' : 'py-4'">
             
             <div class="hidden md:flex items-center gap-1">
-                @if(Route::currentRouteName() == 'consultant.home')
-                    {{-- MENU DA CONSULTORA (SCROLL INTERNO) --}}
+                @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
+                    {{-- MENU DA CONSULTORA --}}
                     <a href="#home" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Início</a>
                     <a href="#about" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Sobre</a>
                     <a href="#testimonials" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Feedback</a>
                     <a href="#portfolio" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Portfólio</a>
                 @else
-                    {{-- MENU DA HOUSE TEAM (SITE PRINCIPAL) --}}
+                    {{-- MENU DA HOUSE TEAM --}}
                     <a href="{{ route('home') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.home') }}</a>
                     <a href="{{ route('about') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.team') }}</a>
                     <a href="{{ route('portfolio') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.properties') }}</a>
@@ -87,12 +89,28 @@
                 @endif
             </div>
 
-            <div class="hidden md:block ml-4">
-                @if(Route::currentRouteName() == 'consultant.home')
-                    <a href="#contact" class="bg-ht-accent text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/30 transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
+            <div class="hidden md:flex items-center gap-6 ml-4">
+                {{-- LÓGICA DO SELETOR E BOTÃO (DESKTOP) --}}
+                @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
+                    
+                    {{-- 1. Seletor de Idioma (SÓ APARECE NA CONSULTORA) --}}
+                    <div class="flex items-center gap-2 text-[10px] font-bold tracking-widest">
+                        <a href="{{ route('lang.switch', 'pt') }}" 
+                           class="{{ app()->getLocale() == 'pt' ? 'text-ht-gold scale-110' : 'text-slate-400 hover:text-white transition' }}" 
+                           title="Português">PT</a>
+                        <span class="text-white/20">|</span>
+                        <a href="{{ route('lang.switch', 'en') }}" 
+                           class="{{ app()->getLocale() == 'en' ? 'text-ht-gold scale-110' : 'text-slate-400 hover:text-white transition' }}" 
+                           title="English">EN</a>
+                    </div>
+
+                    {{-- 2. Botão Dourado (Consultora) --}}
+                    <a href="#contact" class="bg-ht-gold text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-600 hover:shadow-lg hover:shadow-yellow-500/30 transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
                         Contactar
                     </a>
+
                 @else
+                    {{-- SITE NORMAL: Apenas Botão Vermelho (Sem seletor) --}}
                     <a href="{{ route('contact') }}" class="bg-ht-accent text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/30 transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
                         {{ __('menu.contact_us') }}
                     </a>
@@ -101,7 +119,7 @@
 
             <div class="md:hidden flex w-full justify-between items-center">
                  <span class="text-white text-xs font-bold uppercase tracking-widest">
-                    @if(Route::currentRouteName() == 'consultant.home') 
+                    @if(Str::startsWith(Route::currentRouteName(), 'consultant.')) 
                         MENU 
                     @else 
                         {{ __('menu.label_menu') }} 
@@ -119,13 +137,29 @@
         {{-- MOBILE MENU --}}
         <div x-show="isOpen" x-collapse class="md:hidden mt-2 mx-auto w-[95%]">
             <div class="glass-nav rounded-2xl p-4 shadow-2xl flex flex-col gap-2">
-                @if(Route::currentRouteName() == 'consultant.home')
+                @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
+                    {{-- LINKS CONSULTORA --}}
                     <a href="#home" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-white/5 text-white text-sm font-bold text-center">Início</a>
                     <a href="#about" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">Sobre</a>
                     <a href="#testimonials" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">Feedback</a>
                     <a href="#portfolio" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">Portfólio</a>
-                    <a href="#contact" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-ht-accent text-white text-sm font-bold text-center mt-2 shadow-lg">Contactar</a>
+                    <a href="#contact" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-ht-gold text-white text-sm font-bold text-center mt-2 shadow-lg hover:bg-yellow-600 transition">Contactar</a>
+                    
+                    {{-- SELETOR MOBILE (SÓ NA CONSULTORA) --}}
+                    <div class="flex justify-center items-center gap-6 py-4 border-t border-white/10 mt-2">
+                        <a href="{{ route('lang.switch', 'pt') }}" 
+                           class="{{ app()->getLocale() == 'pt' ? 'text-ht-gold font-bold scale-110' : 'text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white' }}">
+                           Português
+                        </a>
+                        <span class="text-white/10">|</span>
+                        <a href="{{ route('lang.switch', 'en') }}" 
+                           class="{{ app()->getLocale() == 'en' ? 'text-ht-gold font-bold scale-110' : 'text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white' }}">
+                           English
+                        </a>
+                    </div>
+
                 @else
+                    {{-- LINKS SITE NORMAL --}}
                     <a href="{{ route('home') }}" class="block px-4 py-3 rounded-xl bg-white/5 text-white text-sm font-bold text-center">{{ __('menu.home') }}</a>
                     <a href="{{ route('about') }}" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('menu.team') }}</a>
                     <a href="{{ route('portfolio') }}" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('menu.properties') }}</a>
@@ -135,6 +169,7 @@
                         <a href="{{ route('tools.imt') }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.imt') }}</a>
                     </div>
                     <a href="{{ route('contact') }}" class="block px-4 py-3 rounded-xl bg-ht-accent text-white text-sm font-bold text-center mt-2 shadow-lg">{{ __('menu.contact_us') }}</a>
+                    {{-- SEM SELETOR AQUI --}}
                 @endif
             </div>
         </div>
