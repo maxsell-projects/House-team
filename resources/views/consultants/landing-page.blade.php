@@ -17,16 +17,19 @@
 
 <div class="bg-texture min-h-screen text-stone-800 font-sans selection:bg-amber-200 selection:text-stone-900">
 
-    {{-- 1. HERO SECTION (ID ADICIONADO: home) --}}
+    {{-- 1. HERO SECTION (ID: home) --}}
     <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 border-b border-stone-200">
         <div class="container mx-auto max-w-6xl">
             <div class="grid lg:grid-cols-12 gap-12 items-center">
                 
                 {{-- Texto --}}
                 <div class="lg:col-span-5 order-2 lg:order-1 text-center lg:text-left">
-                    {{-- LOGO DA MARGARIDA --}}
+                    
+                    {{-- [LOGO DA CONSULTORA - CASA A CASA] --}}
                     <div class="mb-8 flex justify-center lg:justify-start">
-                        <img src="{{ asset('img/logos/casaacasa.png') }}" alt="Casa a Casa" class="h-16 md:h-20 opacity-90" 
+                        <img src="{{ asset('img/logo/casaacasa.png') }}" 
+                             alt="Casa a Casa" 
+                             class="h-24 md:h-28 opacity-100 object-contain drop-shadow-sm" 
                              onerror="this.style.display='none';"> 
                     </div>
 
@@ -59,16 +62,18 @@
                 <div class="lg:col-span-7 order-1 lg:order-2 relative">
                     <div class="absolute inset-0 border-2 border-amber-700/30 transform translate-x-6 translate-y-6 z-0 hidden md:block"></div>
                     <div class="relative z-10 overflow-hidden shadow-2xl">
-                        <img src="{{ $consultant->image_url }}" 
+                        {{-- Fallback de segurança para a foto --}}
+                        <img src="{{ $consultant->image_url ?? asset('img/team/' . $consultant->photo) }}" 
                              alt="{{ $consultant->name }}" 
-                             class="w-full h-auto object-cover grayscale-[10%] sepia-[5%] hover:grayscale-0 transition duration-1000 ease-out">
+                             class="w-full h-auto object-cover grayscale-[10%] sepia-[5%] hover:grayscale-0 transition duration-1000 ease-out"
+                             onerror="this.src='{{ asset('img/logo.png') }}'">
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    {{-- 2. PORQUÊ TRABALHAR COMIGO (ID ADICIONADO: about) --}}
+    {{-- 2. PORQUÊ TRABALHAR COMIGO (ID: about) --}}
     <section id="about" class="py-24 px-6 bg-white">
         <div class="container mx-auto max-w-4xl text-center">
             <h2 class="text-3xl font-serif text-stone-900 mb-6">{{ __('consultant_lp.why_title') }}</h2>
@@ -85,7 +90,7 @@
         </div>
     </section>
 
-    {{-- 3. TESTEMUNHOS (ID ADICIONADO: testimonials) --}}
+    {{-- 3. TESTEMUNHOS (ID: testimonials) --}}
     <section id="testimonials" class="py-16 bg-stone-50 overflow-hidden border-y border-stone-200">
         <div class="container mx-auto px-6">
             <div class="text-center mb-10">
@@ -105,7 +110,7 @@
         </div>
     </section>
 
-    {{-- 4. PORTFÓLIO (ID JÁ EXISTIA: portfolio) --}}
+    {{-- 4. PORTFÓLIO (ID: portfolio) --}}
     <section id="portfolio" class="py-24 px-6">
         <div class="container mx-auto max-w-7xl">
             <div class="text-center mb-20">
@@ -116,8 +121,8 @@
             @if($properties->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
                     @foreach($properties as $property)
-                        {{-- LINK PARA O SITE PRINCIPAL --}}
-                        <a href="{{ route('properties.show', $property) }}" target="_blank" class="group block">
+                        {{-- LINK AJUSTADO: Passa o ID da consultora (?cid=X) para ativar o modo personalizado na página do imóvel --}}
+                        <a href="{{ route('properties.show', $property) }}?cid={{ $consultant->id }}" target="_blank" class="group block">
                             <div class="relative overflow-hidden mb-6 shadow-lg border-8 border-white bg-white">
                                 <div class="aspect-w-4 aspect-h-3">
                                     <img src="{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}" 
@@ -160,7 +165,7 @@
         </div>
     </section>
 
-    {{-- 5. CONTACTO (ID JÁ EXISTIA: contact) --}}
+    {{-- 5. CONTACTO (ID: contact) --}}
     <section id="contact" class="py-24 bg-stone-900 text-stone-200 relative overflow-hidden">
         <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent"></div>
 

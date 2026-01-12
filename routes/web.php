@@ -11,18 +11,19 @@ use App\Http\Controllers\ConsultantController;
 use App\Http\Controllers\ConsultantPageController;
 
 // ==============================================================================
-// 1. ROTAS DE DOMÍNIO EXTERNO (CASA A CASA) - PRIORIDADE MÁXIMA
+// 1. ROTAS DE DOMÍNIO EXTERNO (CONSULTORAS) - PRIORIDADE MÁXIMA
 // ==============================================================================
-// Captura 'casaacasa.pt' ou qualquer outro domínio que não seja o principal
+// Captura domínios personalizados (ex: casaacasa.pt)
 Route::domain('{domain}')
     ->where(['domain' => '^(?!houseteamconsultores\.pt|www\.houseteamconsultores\.pt|localhost|127\.0\.0\.1).*$'])
     ->group(function () {
-        // A Landing Page da Consultora (Root do domínio dela)
+        
+        // 1.1 Landing Page da Consultora (Home)
         Route::get('/', [ConsultantPageController::class, 'index'])->name('consultant.home');
         
-        // Rota de Preview (caso precises, mas o index já resolve)
-        // Nota: Como pediste para os imóveis abrirem no site da House Team,
-        // não precisamos de rotas internas de imóvel aqui!
+        // 1.2 [NOVO] Detalhe do Imóvel no domínio da Consultora
+        // Isso permite abrir o imóvel mantendo a URL da consultora e ativando a personalização
+        Route::get('/imoveis/{property:slug}', [ConsultantPageController::class, 'showProperty'])->name('consultant.property.show');
     });
 
 
@@ -50,7 +51,7 @@ Route::get('lang/{locale}', function ($locale) {
     return back();
 })->name('lang.switch');
 
-// --- IMÓVEIS ---
+// --- IMÓVEIS (Site Principal) ---
 Route::get('/imoveis', [PropertyController::class, 'publicIndex'])->name('portfolio');
 Route::get('/imoveis/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 

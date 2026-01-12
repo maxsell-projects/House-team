@@ -23,9 +23,8 @@
     },
 
     openPreview(id, name) {
-        // Aqui usamos a função getSiteUrl para garantir que o iframe carregue o certo
-        // Mas atenção: alguns sites bloqueiam iframe (X-Frame-Options). 
-        // Se der erro no iframe, é por isso, mas o botão 'Abrir em nova aba' funcionará.
+        // A rota de preview carrega a página da consultora dentro do layout do app
+        // O controller ConsultantPageController::preview cuida disso
         this.previewSrc = this.baseUrl + '/consultor/preview/' + id;
         this.previewName = name;
         this.openModal = false;
@@ -51,16 +50,10 @@
         return this.baseUrl + '/storage/' + cleanPath;
     },
 
-    /**
-     * CORREÇÃO DE PRIORIDADE:
-     * 1. Verifica DOMÍNIO EXTERNO (casaacasa.pt)
-     * 2. Verifica SLUG INTERNO (houseteam/joao)
-     */
     getSiteUrl(member) {
         if (!member) return '#';
 
-        // 1. PRIORIDADE MÁXIMA: Domínio Personalizado (ex: casaacasa.pt)
-        // Se tem domínio E tem um ponto (.), é um site externo real.
+        // 1. Domínio Personalizado (ex: casaacasa.pt)
         if (member.domain && member.domain.includes('.')) {
             return member.domain.startsWith('http') ? member.domain : 'https://' + member.domain;
         }
@@ -70,7 +63,7 @@
             return this.baseUrl + '/' + member.lp_slug;
         }
 
-        // 3. Último caso: Se o campo domain tiver algo sem ponto (legado)
+        // 3. Legado
         if (member.domain) {
             return this.baseUrl + '/' + member.domain;
         }
@@ -373,10 +366,7 @@
                     </svg>
                 </div>
                 
-                {{-- 
-                    OBS: Se o servidor do novo site (casaacasa.pt) não permitir iframe (X-Frame-Options: SAMEORIGIN),
-                    o preview pode ficar branco. Nesse caso, o botão "Abrir em nova aba" ali em cima é a salvação.
-                --}}
+                {{-- Preview via Iframe --}}
                 <iframe :src="previewSrc" 
                         class="w-full h-full relative z-10 bg-white" 
                         frameborder="0"

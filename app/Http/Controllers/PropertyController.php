@@ -268,9 +268,33 @@ class PropertyController extends Controller
         return view('properties.index', compact('properties'));
     }
 
-    public function show(Property $property)
+    public function show(Request $request, Property $property)
     {
-        $property->load(['images', 'consultant']);
-        return view('properties.show', compact('property'));
+        // Garante que o imóvel está visível
+        if (!$property->is_visible) {
+            abort(404);
+        }
+
+        // Carrega imagens ordenadas
+        $property->load(['images' => function ($query) {
+            $query->orderBy('order', 'asc');
+        }, 'consultant']);
+
+        // LÓGICA DO MODO CONSULTORA
+        $consultant = null;
+
+        // 1. Se a URL tiver ?cid=X (Preview ou link compartilhado)
+        if ($request->has('cid')) {
+            $consultant = Consultant::find($request->cid);
+        }
+        // 2. Se estiver acessando via domínio próprio da consultora
+        elseif ($request->route('domain')) {
+             $domain = preg_replace('/^www\./', '', $request->route('domain'));
+             $consultant = Consultant::where('domain', $domain)
+                ->orWhere('lp_slug', $domain)
+                ->first();
+        }
+
+        return view('properties.show', compact('property', 'consultant'));
     }
 }
