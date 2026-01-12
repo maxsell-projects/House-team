@@ -12,10 +12,11 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Se existir uma escolha na sessão, aplicamos ao Laravel
-        if (Session::has('locale')) {
-            App::setLocale(Session::get('locale'));
-        }
+        
+        $locale = Session::get('locale', config('app.fallback_locale', 'pt'));
+
+        
+        App::setLocale($locale);
 
         return $next($request);
     }
