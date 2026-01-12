@@ -16,17 +16,17 @@ class ConsultantController extends Controller
         // 1. Limpeza do protocolo
         $host = strtolower(str_replace(['http://', 'https://', 'www.'], '', $domain));
         
-        // 2. Extrai o possível slug (ex: 'margarida' de 'margarida.casaacasa.pt')
+        // 2. Extrai o possível slug
         $slugPart = explode('.', $host)[0];
 
-        // --- CORREÇÃO 1: Usando o nome da coluna que você me mandou (ip_slug) ---
-        $consultant = Consultant::where('ip_slug', $slugPart)
+        // --- CORREÇÃO FINAL: O nome na migration é 'lp_slug' ---
+        // Se estiver NULL no banco, ele simplesmente não acha aqui e passa para o próximo passo.
+        $consultant = Consultant::where('lp_slug', $slugPart)
             ->where('is_active', true)
             ->first();
 
-        // 3. Se não achou pelo slug, busca pelo Domínio Exato
+        // 3. Se não achou pelo slug, busca pelo Domínio Exato (Obrigatório ter no banco)
         if (! $consultant) {
-            // --- CORREÇÃO 2: Removido 'custom_domain', busca só em 'domain' ---
             $consultant = Consultant::where('domain', $host)
                 ->where('is_active', true)
                 ->firstOrFail(); 
@@ -54,7 +54,6 @@ class ConsultantController extends Controller
     {
         $consultant = $this->getConsultantByDomain($domain);
 
-        // Imóvel continua buscando por 'slug' (coluna da tabela properties)
         $property = Property::where('slug', $slug)
             ->where('is_visible', true)
             ->firstOrFail();
