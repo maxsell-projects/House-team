@@ -114,7 +114,7 @@ Route::prefix('admin')->group(function () {
         // Se o arquivo ConsultantController agora só tem a lógica da Landing Page (index, showProperty),
         // esta rota resource abaixo VAI QUEBRAR o admin, pois faltam os métodos store, update, destroy.
         // Mantenha comentado se não tiver esses métodos, ou crie um AdminConsultantController separado.
-        Route::resource('consultants', ConsultantController::class)->names('admin.consultants');
+        //Route::resource('consultants', ConsultantController::class)->names('admin.consultants');
         
         Route::post('/properties/reorder', [PropertyController::class, 'reorder'])->name('admin.properties.reorder');
         Route::post('/properties/{property}/move-to-top', [PropertyController::class, 'moveToTop'])->name('admin.properties.moveToTop');
