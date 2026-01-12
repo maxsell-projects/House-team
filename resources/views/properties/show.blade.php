@@ -196,6 +196,13 @@
             <div class="lg:col-span-4">
                 <div class="sticky top-32 space-y-6">
                     
+                    {{-- [LÓGICA: DEFINE O CONSULTOR ATUAL] --}}
+                    {{-- Se estivermos na página da consultora (ex: margarida.site.pt), $consultant existirá. --}}
+                    {{-- Caso contrário, usamos o consultor associado ao imóvel ($property->consultant). --}}
+                    @php
+                        $currentConsultant = isset($consultant) ? $consultant : $property->consultant;
+                    @endphp
+
                     {{-- [LOGO DA CONSULTORA NA PÁGINA] --}}
                     @if(isset($consultant))
                         <div class="flex flex-col items-center mb-6">
@@ -215,24 +222,25 @@
                             {{ $property->price ? '€ ' . number_format($property->price, 0, ',', '.') : __('portfolio.price_on_request') }}
                         </p>
 
-                        @if($property->consultant)
+                        {{-- [CARTÃO DO CONSULTOR - DINÂMICO] --}}
+                        @if($currentConsultant)
                             <div class="relative z-10 bg-white/5 p-6 rounded-2xl border border-white/10 mb-6">
                                 <div class="flex items-center gap-4 mb-4">
-                                    <img src="{{ $property->consultant->image_url ?? asset('img/team/' . $property->consultant->photo) }}" 
+                                    <img src="{{ $currentConsultant->image_url ?? asset('img/team/' . $currentConsultant->photo) }}" 
                                          class="w-16 h-16 rounded-full object-cover border-2 border-ht-accent"
                                          onerror="this.src='{{ asset('img/logo.png') }}'">
                                     <div>
                                         <p class="text-xs text-ht-accent font-bold uppercase tracking-wider">{{ __('portfolio.consultant_label') }}</p>
-                                        <p class="font-bold text-lg leading-tight">{{ $property->consultant->name }}</p>
-                                        <p class="text-xs text-slate-400">{{ $property->consultant->role }}</p>
+                                        <p class="font-bold text-lg leading-tight">{{ $currentConsultant->name }}</p>
+                                        <p class="text-xs text-slate-400">{{ $currentConsultant->role }}</p>
                                     </div>
                                 </div>
                                 <div class="space-y-3">
-                                    <a href="{{ route('contact', ['property_code' => $property->crm_code ?? $property->id]) }}" class="block w-full bg-white text-ht-navy font-black uppercase tracking-widest py-3 text-xs rounded-xl hover:bg-ht-accent hover:text-white transition-all text-center shadow-lg">
+                                    <a href="{{ route('contact', ['property_code' => $property->crm_code ?? $property->id, 'consultant_id' => $currentConsultant->id]) }}" class="block w-full bg-white text-ht-navy font-black uppercase tracking-widest py-3 text-xs rounded-xl hover:bg-ht-accent hover:text-white transition-all text-center shadow-lg">
                                         {{ __('portfolio.btn_schedule') }}
                                     </a>
-                                    @if($property->consultant->phone)
-                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $property->consultant->phone) }}?text=Olá {{ $property->consultant->name }}, vi o imóvel {{ $property->title }} ({{ $property->crm_code ?? '#' . $property->id }}) no site." target="_blank" class="flex items-center justify-center gap-2 w-full border border-green-500 text-green-400 font-bold uppercase tracking-widest py-3 text-xs rounded-xl hover:bg-green-500 hover:text-white transition-all">WhatsApp</a>
+                                    @if($currentConsultant->phone)
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $currentConsultant->phone) }}?text=Olá {{ $currentConsultant->name }}, estou no seu site e vi o imóvel {{ $property->title }} ({{ $property->crm_code ?? '#' . $property->id }})." target="_blank" class="flex items-center justify-center gap-2 w-full border border-green-500 text-green-400 font-bold uppercase tracking-widest py-3 text-xs rounded-xl hover:bg-green-500 hover:text-white transition-all">WhatsApp</a>
                                     @endif
                                 </div>
                             </div>
