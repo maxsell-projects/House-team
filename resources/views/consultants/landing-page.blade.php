@@ -97,6 +97,15 @@
             <div class="grid lg:grid-cols-2 gap-16 items-center">
                 
                 <div class="order-2 lg:order-1" data-aos="fade-right" data-aos-duration="1000">
+                    
+                    {{-- LOGO DA CONSULTORA (ADICIONADA AQUI) --}}
+                    <div class="mb-8">
+                        <img src="{{ asset('img/logo/casaacasa.png') }}" 
+                             alt="Casa a Casa" 
+                             class="h-16 md:h-20 w-auto object-contain"
+                             onerror="this.style.display='none'">
+                    </div>
+
                     <span class="text-gold font-bold tracking-[0.2em] text-xs uppercase mb-4 block">
                         {{ __('consultant_lp.hero_subtitle') }}
                     </span>
