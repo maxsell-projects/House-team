@@ -525,6 +525,12 @@
     "consultant_lp.why_text": "Num mercado saturado, a distinção faz-se pelos detalhes. Acompanho um número restrito de clientes para garantir um serviço de 'concierge imobiliário', onde cada visita é qualificada e cada proposta é defendida com estratégia.",
     "consultant_lp.feedback_title": "A voz de quem confiou",
     "consultant_lp.properties_subtitle": "Uma seleção curada",
-    "consultant_lp.properties_title": "Destaques House Team"
+    "consultant_lp.properties_title": "Destaques House Team",
+
+    "consultant_lp.menu_home": "Início",
+    "consultant_lp.menu_about": "Sobre",
+    "consultant_lp.menu_feedback": "Feedback",
+    "consultant_lp.menu_portfolio": "Portfólio",
+    "consultant_lp.menu_contact": "Contactar"
   
 }

@@ -64,10 +64,11 @@
             <div class="hidden md:flex items-center gap-1">
                 @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
                     {{-- MENU DA CONSULTORA --}}
-                    <a href="#home" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Início</a>
-                    <a href="#about" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Sobre</a>
-                    <a href="#testimonials" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Feedback</a>
-                    <a href="#portfolio" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">Portfólio</a>
+                    {{-- AQUI ESTAVA O PROBLEMA: Substituí "Início" por {{ __('consultant_lp.menu_home') }} --}}
+                    <a href="#home" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_home') }}</a>
+                    <a href="#about" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_about') }}</a>
+                    <a href="#testimonials" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_feedback') }}</a>
+                    <a href="#portfolio" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_portfolio') }}</a>
                 @else
                     {{-- MENU DA HOUSE TEAM --}}
                     <a href="{{ route('home') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.home') }}</a>
@@ -106,7 +107,7 @@
 
                     {{-- 2. Botão Dourado (Consultora) --}}
                     <a href="#contact" class="bg-ht-gold text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-600 hover:shadow-lg hover:shadow-yellow-500/30 transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
-                        Contactar
+                        {{ __('consultant_lp.menu_contact') }}
                     </a>
 
                 @else
@@ -138,12 +139,12 @@
         <div x-show="isOpen" x-collapse class="md:hidden mt-2 mx-auto w-[95%]">
             <div class="glass-nav rounded-2xl p-4 shadow-2xl flex flex-col gap-2">
                 @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
-                    {{-- LINKS CONSULTORA --}}
-                    <a href="#home" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-white/5 text-white text-sm font-bold text-center">Início</a>
-                    <a href="#about" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">Sobre</a>
-                    <a href="#testimonials" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">Feedback</a>
-                    <a href="#portfolio" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">Portfólio</a>
-                    <a href="#contact" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-ht-gold text-white text-sm font-bold text-center mt-2 shadow-lg hover:bg-yellow-600 transition">Contactar</a>
+                    {{-- LINKS CONSULTORA (MÓVEL) --}}
+                    <a href="#home" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-white/5 text-white text-sm font-bold text-center">{{ __('consultant_lp.menu_home') }}</a>
+                    <a href="#about" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('consultant_lp.menu_about') }}</a>
+                    <a href="#testimonials" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('consultant_lp.menu_feedback') }}</a>
+                    <a href="#portfolio" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('consultant_lp.menu_portfolio') }}</a>
+                    <a href="#contact" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-ht-gold text-white text-sm font-bold text-center mt-2 shadow-lg hover:bg-yellow-600 transition">{{ __('consultant_lp.menu_contact') }}</a>
                     
                     {{-- SELETOR MOBILE (SÓ NA CONSULTORA) --}}
                     <div class="flex justify-center items-center gap-6 py-4 border-t border-white/10 mt-2">

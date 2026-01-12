@@ -521,7 +521,13 @@
     "consultant_lp.why_text": "In a saturated market, distinction lies in the details. I work with a limited number of clients to ensure a 'real estate concierge' service, where every visit is qualified and every proposal is strategically defended.",
     "consultant_lp.feedback_title": "Trusted Reviews",
     "consultant_lp.properties_subtitle": "A curated selection",
-    "consultant_lp.properties_title": "House Team Highlights"
+    "consultant_lp.properties_title": "House Team Highlights",
+
+    "consultant_lp.menu_home": "Home",
+    "consultant_lp.menu_about": "About",
+    "consultant_lp.menu_feedback": "Reviews",
+    "consultant_lp.menu_portfolio": "Portfolio",
+    "consultant_lp.menu_contact": "Contact"
   
 }
 
