@@ -67,11 +67,12 @@
                 @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
                     {{-- MENU DA CONSULTORA --}}
                     
-                    {{-- Logo Desktop (AUMENTADA PARA h-14) --}}
-                    <a href="#home" class="mr-4 hover:opacity-80 transition-opacity">
+                    {{-- Logo Desktop (AGORA ENORME: h-20) --}}
+                    <a href="#home" class="mr-6 hover:opacity-80 transition-opacity">
                         <img src="{{ asset('img/logo/casaacasa.png') }}" 
                              alt="Casa a Casa" 
-                             class="h-14 w-auto object-contain brightness-0 invert">
+                             class="h-20 w-auto object-contain brightness-0 invert" 
+                             onerror="this.style.display='none'">
                     </a>
 
                     <a href="#home" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_home') }}</a>
@@ -131,13 +132,13 @@
 
             {{-- ================= MENU HAMBURGUER (MOBILE) ================= --}}
             <div class="md:hidden flex w-full justify-between items-center">
-                 {{-- LOGO NO MOBILE (AUMENTADA PARA h-14) --}}
                  <div class="flex items-center gap-2">
                      @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
                         <a href="#home">
-                            {{-- MUDANÇA: h-14 (56px) para destaque total --}}
+                            {{-- LOGO MOBILE (AUMENTADA PARA h-14) --}}
                             <img src="{{ asset('img/logo/casaacasa.png') }}" 
-                                 class="h-14 w-auto brightness-0 invert object-contain">
+                                 class="h-14 w-auto brightness-0 invert object-contain" 
+                                 onerror="this.style.display='none'">
                         </a>
                      @else
                         <span class="text-white text-xs font-bold uppercase tracking-widest">
