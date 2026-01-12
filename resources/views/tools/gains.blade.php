@@ -60,7 +60,7 @@
     </style>
 @endif
 
-<div class="bg-slate-50 min-h-screen pt-24 pb-12 relative overflow-hidden">
+<div class="bg-slate-50 min-h-screen pt-40 pb-12 relative overflow-hidden">
     
     {{-- Fundo Decorativo (Só aparece na versão Consultora) --}}
     @if(isset($consultant))

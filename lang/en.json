@@ -537,7 +537,16 @@
     "consultant_lp.menu_about": "About",
     "consultant_lp.menu_feedback": "Reviews",
     "consultant_lp.menu_portfolio": "Portfolio",
-    "consultant_lp.menu_contact": "Contact Me"
+    "consultant_lp.menu_contact": "Contact Me", 
+
+    "consultant_lp.about_card_1_title": "Award-Winning Experience",
+    "consultant_lp.about_card_1_text": "Working in Real Estate since 2008, starting in Financial Consulting and finding my true calling in 2014. Since then, I have been recognized and awarded every year for my work and sales volume, maintaining a permanent presence in the Top Producers ranking.",
+    "consultant_lp.about_card_2_title": "500+ Dreams Fulfilled",
+    "consultant_lp.about_card_2_text": "Over these years, I have helped fulfill more than 500 dreams, guiding both owners and buyers. My approach is always based on impartiality and trust, clearly demonstrating and justifying the advantages and disadvantages of every business option.",
+    "consultant_lp.about_card_3_title": "Solution Focused",
+    "consultant_lp.about_card_3_text": "Over 10 years of experience allow me to apply the serenity and insight I've gained for my clients' benefit. I am deeply empathetic, focused on finding solutions, unusually persistent, and unafraid of overcoming obstacles."
+
+    
   
 }
 

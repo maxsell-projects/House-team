@@ -20,7 +20,7 @@
 @endif
 
 {{-- HEADER --}}
-<div class="bg-ht-navy text-white py-20 text-center relative overflow-hidden">
+<div class="bg-ht-navy text-white pt-40 pb-20 text-center relative overflow-hidden">
     @if(isset($consultant))
         <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
         <div class="absolute top-0 right-0 w-1/3 h-full bg-ht-accent opacity-10" style="clip-path: polygon(20% 0%, 100% 0, 100% 100%, 0% 100%);"></div>

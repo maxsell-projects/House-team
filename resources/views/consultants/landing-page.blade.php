@@ -68,6 +68,23 @@
 
     .property-card { transition: transform 0.4s ease, box-shadow 0.4s ease; }
     .property-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(30, 41, 59, 0.1); }
+    
+    /* Estilo para os cards de sobre */
+    .about-card {
+        background-color: var(--color-navy);
+        padding: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .about-card:hover { transform: translateY(-5px); }
+    .about-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 4px; height: 100%;
+        background-color: var(--color-gold);
+    }
 </style>
 
 <div class="overflow-x-hidden">
@@ -141,20 +158,50 @@
         </div>
     </section>
 
-    {{-- 3. SOBRE --}}
+    {{-- 3. SOBRE (VERSÃO DINÂMICA COM TRADUÇÃO) --}}
     <section id="about" class="py-24 bg-white">
-        <div class="container mx-auto px-6 max-w-4xl text-center" data-aos="fade-up">
-            <span class="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-3">{{ __('consultant_lp.why_title_label') }}</span>
-            <h2 class="text-4xl text-navy mb-8">{{ __('consultant_lp.why_title') }}</h2>
-            <div class="w-20 h-[1px] bg-gold mx-auto mb-10"></div>
+        <div class="container mx-auto px-6 max-w-7xl">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-3">{{ __('consultant_lp.why_title_label') }}</span>
+                <h2 class="text-4xl text-navy mb-6">{{ __('consultant_lp.why_title') }}</h2>
+                <div class="w-20 h-[1px] bg-gold mx-auto"></div>
+            </div>
             
-            <div class="prose prose-lg mx-auto text-slate-600 font-light leading-loose">
-                <p class="mb-8">"{{ __('consultant_lp.why_text') }}"</p>
-                @if($consultant->bio)
-                    <div class="text-sm italic text-slate-500 border-t border-slate-100 pt-8">
-                        {!! nl2br(e($consultant->bio)) !!}
+            <div class="grid md:grid-cols-3 gap-8">
+                
+                {{-- Bloco 1: Experiência & Prêmios --}}
+                <div class="about-card shadow-xl" data-aos="fade-up" data-aos-delay="0">
+                    <div class="mb-6 text-gold">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                @endif
+                    <h3 class="text-xl font-serif mb-4 text-gold-light">{{ __('consultant_lp.about_card_1_title') }}</h3>
+                    <p class="text-sm font-light leading-relaxed text-slate-300">
+                        {{ __('consultant_lp.about_card_1_text') }}
+                    </p>
+                </div>
+
+                {{-- Bloco 2: Sonhos Realizados --}}
+                <div class="about-card shadow-xl" data-aos="fade-up" data-aos-delay="100">
+                    <div class="mb-6 text-gold">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-serif mb-4 text-gold-light">{{ __('consultant_lp.about_card_2_title') }}</h3>
+                    <p class="text-sm font-light leading-relaxed text-slate-300">
+                        {{ __('consultant_lp.about_card_2_text') }}
+                    </p>
+                </div>
+
+                {{-- Bloco 3: Metodologia --}}
+                <div class="about-card shadow-xl" data-aos="fade-up" data-aos-delay="200">
+                    <div class="mb-6 text-gold">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-serif mb-4 text-gold-light">{{ __('consultant_lp.about_card_3_title') }}</h3>
+                    <p class="text-sm font-light leading-relaxed text-slate-300">
+                        {{ __('consultant_lp.about_card_3_text') }}
+                    </p>
+                </div>
+
             </div>
         </div>
     </section>

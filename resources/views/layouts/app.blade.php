@@ -26,8 +26,7 @@
                         'ht-primary': '#1e3a8a',
                         'ht-accent': '#dc2626',
                         'ht-dark': '#020617',
-                        // Nossa cor Premium
-                        'ht-gold': '#D4AF37', 
+                        'ht-gold': '#c5a059', // Cor Premium da Consultora
                     },
                     boxShadow: {
                         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
@@ -51,7 +50,9 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased text-slate-800 bg-slate-50 selection:bg-ht-accent selection:text-white">
+<body class="font-sans antialiased text-slate-800 bg-slate-50 
+    {{ Str::startsWith(Route::currentRouteName(), 'consultant.') ? 'selection:bg-ht-gold' : 'selection:bg-ht-accent' }} 
+    selection:text-white">
 
     {{-- MENU DE NAVEGAÇÃO INTELIGENTE --}}
     <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-auto transition-all duration-500"
@@ -64,32 +65,39 @@
             {{-- DESKTOP MENU --}}
             <div class="hidden md:flex items-center gap-1">
                 @if(Str::startsWith(Route::currentRouteName(), 'consultant.'))
-                    {{-- MENU DA CONSULTORA --}}
+                    {{-- === MENU DA CONSULTORA (NAVY & GOLD) === --}}
+                    
                     <a href="#home" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_home') }}</a>
                     <a href="#about" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_about') }}</a>
                     <a href="#testimonials" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_feedback') }}</a>
                     <a href="#portfolio" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('consultant_lp.menu_portfolio') }}</a>
 
-                    {{-- NOVO: FERRAMENTAS NO MENU DA CONSULTORA --}}
+                    {{-- DROPDOWN FERRAMENTAS (GOLD + CORREÇÃO DE ROTA) --}}
                     <div class="relative group">
                         <button class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all flex items-center gap-1">
                             {{ __('menu.tools') }}
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </button>
                         <div class="absolute left-1/2 -translate-x-1/2 top-full mt-4 w-48 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top overflow-hidden">
-                            <a href="{{ route('tools.credit') }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-accent transition text-center">{{ __('menu.credit') }}</a>
-                            <a href="{{ route('tools.gains') }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-accent transition text-center">{{ __('menu.gains') }}</a>
-                            <a href="{{ route('tools.imt') }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-accent transition text-center">{{ __('menu.imt') }}</a>
+                            {{-- 
+                                CORREÇÃO CRÍTICA AQUI: 
+                                Usamos $consultant->domain em vez de request()->route('domain').
+                                Isso resolve o erro no Preview onde a rota não tem domínio.
+                            --}}
+                            <a href="{{ route('consultant.tools.credit', ['domain' => $consultant->domain]) }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-gold transition text-center">{{ __('menu.credit') }}</a>
+                            <a href="{{ route('consultant.tools.gains', ['domain' => $consultant->domain]) }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-gold transition text-center">{{ __('menu.gains') }}</a>
+                            <a href="{{ route('consultant.tools.imt', ['domain' => $consultant->domain]) }}" class="block px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-ht-gold transition text-center">{{ __('menu.imt') }}</a>
                         </div>
                     </div>
 
                 @else
-                    {{-- MENU DA HOUSE TEAM --}}
+                    {{-- === MENU DA HOUSE TEAM (PADRÃO - RED) === --}}
+                    
                     <a href="{{ route('home') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.home') }}</a>
                     <a href="{{ route('about') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.team') }}</a>
                     <a href="{{ route('portfolio') }}" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all">{{ __('menu.properties') }}</a>
                     
-                    {{-- Dropdown Ferramentas --}}
+                    {{-- DROPDOWN FERRAMENTAS (RED) --}}
                     <div class="relative group">
                         <button class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all flex items-center gap-1">
                             {{ __('menu.tools') }}
@@ -160,26 +168,20 @@
                     <a href="#testimonials" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('consultant_lp.menu_feedback') }}</a>
                     <a href="#portfolio" @click="isOpen=false" class="block px-4 py-3 rounded-xl hover:bg-white/5 text-white text-sm font-bold text-center transition">{{ __('consultant_lp.menu_portfolio') }}</a>
                     
-                    {{-- NOVO: FERRAMENTAS (MÓVEL CONSULTORA) --}}
+                    {{-- FERRAMENTAS MÓVEL CONSULTORA (GOLD + CORREÇÃO) --}}
                     <div class="grid grid-cols-3 gap-2 border-t border-white/10 pt-2 mt-2">
-                        <a href="{{ route('tools.credit') }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.credit') }}</a>
-                        <a href="{{ route('tools.gains') }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.gains') }}</a>
-                        <a href="{{ route('tools.imt') }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.imt') }}</a>
+                        <a href="{{ route('consultant.tools.credit', ['domain' => $consultant->domain]) }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.credit') }}</a>
+                        <a href="{{ route('consultant.tools.gains', ['domain' => $consultant->domain]) }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.gains') }}</a>
+                        <a href="{{ route('consultant.tools.imt', ['domain' => $consultant->domain]) }}" class="bg-white/5 rounded-lg p-2 text-center text-[10px] font-bold text-slate-300 hover:bg-white/10 hover:text-white">{{ __('menu.imt') }}</a>
                     </div>
 
                     <a href="#contact" @click="isOpen=false" class="block px-4 py-3 rounded-xl bg-ht-gold text-white text-sm font-bold text-center mt-2 shadow-lg hover:bg-yellow-600 transition">{{ __('consultant_lp.menu_contact') }}</a>
                     
-                    {{-- SELETOR MOBILE (SÓ NA CONSULTORA) --}}
+                    {{-- SELETOR MOBILE --}}
                     <div class="flex justify-center items-center gap-6 py-4 border-t border-white/10 mt-2">
-                        <a href="{{ route('lang.switch', 'pt') }}" 
-                           class="{{ app()->getLocale() == 'pt' ? 'text-ht-gold font-bold scale-110' : 'text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white' }}">
-                           Português
-                        </a>
+                        <a href="{{ route('lang.switch', 'pt') }}" class="{{ app()->getLocale() == 'pt' ? 'text-ht-gold font-bold scale-110' : 'text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white' }}">Português</a>
                         <span class="text-white/10">|</span>
-                        <a href="{{ route('lang.switch', 'en') }}" 
-                           class="{{ app()->getLocale() == 'en' ? 'text-ht-gold font-bold scale-110' : 'text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white' }}">
-                           English
-                        </a>
+                        <a href="{{ route('lang.switch', 'en') }}" class="{{ app()->getLocale() == 'en' ? 'text-ht-gold font-bold scale-110' : 'text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white' }}">English</a>
                     </div>
 
                 @else
@@ -203,65 +205,68 @@
     </main>
 
     {{-- RODAPÉ --}}
-    <footer class="bg-ht-navy text-white pt-24 pb-12 border-t border-white/5">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12">
-                <div class="col-span-1 md:col-span-2">
-                    <a href="{{ route('home') }}" class="block mb-6">
-                        <img src="{{ asset('img/logo.png') }}" alt="House Team" class="h-14 w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity">
-                    </a>
-                    <p class="text-slate-400 text-sm leading-relaxed max-w-md">
-                        {{ __('footer.broker_description') }}
-                    </p>
-                </div>
-                <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest mb-6 text-ht-accent">{{ __('footer.menu_title') }}</h5>
-                    <ul class="space-y-3 text-sm text-slate-400">
-                        <li><a href="{{ route('home') }}" class="hover:text-white transition">{{ __('menu.home') }}</a></li>
-                        <li><a href="{{ route('about') }}" class="hover:text-white transition">{{ __('menu.team') }}</a></li>
-                        <li><a href="{{ route('portfolio') }}" class="hover:text-white transition">{{ __('menu.properties') }}</a></li>
-                        <li><a href="{{ route('contact') }}" class="hover:text-white transition">{{ __('menu.contact_us') }}</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest mb-6 text-ht-accent">{{ __('footer.contacts_title') }}</h5>
-                    <ul class="space-y-4 text-sm text-slate-400">
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <a href="tel:+351923224551" class="hover:text-white transition">+351 923 224 551</a>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            <a href="mailto:Clientes@houseteamconsultores.pt" class="hover:text-white transition break-all">Clientes@houseteamconsultores.pt</a>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span>R. Cidade de Bissau, 1800-240 Lisboa</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="text-center md:text-left">
-                    <p class="text-slate-500 text-xs uppercase tracking-widest">
-                        &copy; {{ date('Y') }} House Team Consultores. {{ __('footer.rights_reserved') }} <span class="mx-1">|</span> NIF: 508615631
-                    </p>
-                    
-                    <div class="flex flex-wrap justify-center md:justify-start gap-4 text-[10px] uppercase tracking-wider text-slate-500 mt-2">
-                        <a href="{{ route('legal.privacy') }}" class="hover:text-white transition">{{ __('legal.privacy') }}</a>
-                        <a href="{{ route('legal.terms') }}" class="hover:text-white transition">{{ __('legal.terms') }}</a>
-                        <a href="{{ route('legal.cookies') }}" class="hover:text-white transition">{{ __('legal.cookies') }}</a>
-                        <a href="{{ route('legal.disclaimer') }}" class="hover:text-white transition">{{ __('legal.disclaimer') }}</a>
+    {{-- LÓGICA DE OCULTAÇÃO: Só mostra se NÃO for consultor --}}
+    @unless(Str::startsWith(Route::currentRouteName(), 'consultant.'))
+        <footer class="bg-ht-navy text-white pt-24 pb-12 border-t border-white/5">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12">
+                    <div class="col-span-1 md:col-span-2">
+                        <a href="{{ route('home') }}" class="block mb-6">
+                            <img src="{{ asset('img/logo.png') }}" alt="House Team" class="h-14 w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity">
+                        </a>
+                        <p class="text-slate-400 text-sm leading-relaxed max-w-md">
+                            {{ __('footer.broker_description') }}
+                        </p>
+                    </div>
+                    <div>
+                        <h5 class="text-xs font-bold uppercase tracking-widest mb-6 text-ht-accent">{{ __('footer.menu_title') }}</h5>
+                        <ul class="space-y-3 text-sm text-slate-400">
+                            <li><a href="{{ route('home') }}" class="hover:text-white transition">{{ __('menu.home') }}</a></li>
+                            <li><a href="{{ route('about') }}" class="hover:text-white transition">{{ __('menu.team') }}</a></li>
+                            <li><a href="{{ route('portfolio') }}" class="hover:text-white transition">{{ __('menu.properties') }}</a></li>
+                            <li><a href="{{ route('contact') }}" class="hover:text-white transition">{{ __('menu.contact_us') }}</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="text-xs font-bold uppercase tracking-widest mb-6 text-ht-accent">{{ __('footer.contacts_title') }}</h5>
+                        <ul class="space-y-4 text-sm text-slate-400">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                <a href="tel:+351923224551" class="hover:text-white transition">+351 923 224 551</a>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <a href="mailto:Clientes@houseteamconsultores.pt" class="hover:text-white transition break-all">Clientes@houseteamconsultores.pt</a>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>R. Cidade de Bissau, 1800-240 Lisboa</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
                 
-                <a href="https://www.maxselladvisor.com" target="_blank" class="opacity-50 hover:opacity-100 transition-opacity">
-                    <img src="{{ asset('img/maxsell.png') }}" alt="MaxSell Advisor" class="h-6 w-auto brightness-0 invert">
-                </a>
+                <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <p class="text-slate-500 text-xs uppercase tracking-widest">
+                            &copy; {{ date('Y') }} House Team Consultores. {{ __('footer.rights_reserved') }} <span class="mx-1">|</span> NIF: 508615631
+                        </p>
+                        
+                        <div class="flex flex-wrap justify-center md:justify-start gap-4 text-[10px] uppercase tracking-wider text-slate-500 mt-2">
+                            <a href="{{ route('legal.privacy') }}" class="hover:text-white transition">{{ __('legal.privacy') }}</a>
+                            <a href="{{ route('legal.terms') }}" class="hover:text-white transition">{{ __('legal.terms') }}</a>
+                            <a href="{{ route('legal.cookies') }}" class="hover:text-white transition">{{ __('legal.cookies') }}</a>
+                            <a href="{{ route('legal.disclaimer') }}" class="hover:text-white transition">{{ __('legal.disclaimer') }}</a>
+                        </div>
+                    </div>
+                    
+                    <a href="https://www.maxselladvisor.com" target="_blank" class="opacity-50 hover:opacity-100 transition-opacity">
+                        <img src="{{ asset('img/maxsell.png') }}" alt="MaxSell Advisor" class="h-6 w-auto brightness-0 invert">
+                    </a>
+                </div>
             </div>
-        </div>
-    </footer>
+        </footer>
+    @endunless
 
     @include('partials.cookie-banner')
 
@@ -288,7 +293,7 @@
                 x-transition:leave-start="opacity-100 translate-y-0"
                 x-transition:leave-end="opacity-0 translate-y-4"
                 @click="window.scrollTo({top: 0, behavior: 'smooth'})" 
-                class="w-12 h-12 bg-white text-ht-accent rounded-full shadow-lg border border-slate-100 flex items-center justify-center hover:bg-ht-accent hover:text-white transition-all duration-300 focus:outline-none transform hover:scale-110" 
+                class="w-12 h-12 bg-white {{ Str::startsWith(Route::currentRouteName(), 'consultant.') ? 'text-ht-gold hover:bg-ht-gold' : 'text-ht-accent hover:bg-ht-accent' }} rounded-full shadow-lg border border-slate-100 flex items-center justify-center hover:text-white transition-all duration-300 focus:outline-none transform hover:scale-110" 
                 title="{{ __('ui.back_to_top') }}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
         </button>
