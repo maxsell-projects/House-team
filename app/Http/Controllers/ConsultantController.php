@@ -11,26 +11,18 @@ use Illuminate\Support\Str;
 class ConsultantController extends Controller
 {
     // ==============================================================================
-    // 1. ÁREA PÚBLICA (LANDING PAGES) - LÓGICA RESTAURADA
+    // 1. ÁREA PÚBLICA (LANDING PAGES)
     // ==============================================================================
 
-    /**
-     * Busca a consultora pelo Domínio ou Slug.
-     */
     private function getConsultantByDomain($domain)
     {
-        // 1. Limpeza do protocolo
         $host = strtolower(str_replace(['http://', 'https://', 'www.'], '', $domain));
-        
-        // 2. Extrai o possível slug
         $slugPart = explode('.', $host)[0];
 
-        // Se estiver NULL no banco, ele simplesmente não acha aqui e passa para o próximo passo.
         $consultant = Consultant::where('lp_slug', $slugPart)
             ->where('is_active', true)
             ->first();
 
-        // 3. Se não achou pelo slug, busca pelo Domínio Exato
         if (! $consultant) {
             $consultant = Consultant::where('domain', $host)
                 ->where('is_active', true)
@@ -46,7 +38,7 @@ class ConsultantController extends Controller
 
         $properties = Property::where('consultant_id', $consultant->id)
             ->where('is_visible', true)
-            ->ordered() // Usei seu scopeOrdered() pra garantir consistência
+            ->ordered()
             ->take(6)
             ->get();
 
@@ -94,12 +86,9 @@ class ConsultantController extends Controller
     }
 
     // ==============================================================================
-    // 2. ÁREA ADMINISTRATIVA (CRUD) - LÓGICA REIMPLEMENTADA
+    // 2. ÁREA ADMINISTRATIVA (CRUD)
     // ==============================================================================
 
-    /**
-     * Lista de consultores no Admin (Renomeado para não conflitar com a LP)
-     */
     public function adminIndex()
     {
         $consultants = Consultant::orderBy('order', 'asc')->paginate(20);
@@ -113,27 +102,31 @@ class ConsultantController extends Controller
 
     public function store(Request $request)
     {
+        // AJUSTE CRÍTICO: 'email' agora é 'nullable' para não travar se vier vazio
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:consultants,email',
-            'phone' => 'nullable|string|max:20',
-            'role' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|max:5120', // Máx 5MB
-            'bio' => 'nullable|string',
-            'domain' => 'nullable|string|unique:consultants,domain|max:100',
-            'lp_slug' => 'nullable|string|unique:consultants,lp_slug|max:50',
-            'whatsapp' => 'nullable|string|max:20',
-            'facebook' => 'nullable|url',
+            'name'      => 'required|string|max:255',
+            'email'     => 'nullable|email|unique:consultants,email', 
+            'phone'     => 'nullable|string|max:20',
+            'role'      => 'nullable|string|max:100',
+            'photo'     => 'nullable|image|max:5120',
+            'bio'       => 'nullable|string',
+            'domain'    => 'nullable|string|unique:consultants,domain|max:100',
+            'lp_slug'   => 'nullable|string|unique:consultants,lp_slug|max:50',
+            'whatsapp'  => 'nullable|string|max:20',
+            'facebook'  => 'nullable|url',
             'instagram' => 'nullable|url',
-            'linkedin' => 'nullable|url',
-            'tiktok' => 'nullable|url',
+            'linkedin'  => 'nullable|url',
+            'tiktok'    => 'nullable|url',
+            'order'     => 'nullable|integer',
         ]);
 
         $data['is_active'] = $request->has('is_active');
         $data['has_lp'] = $request->has('has_lp');
         
-        // Define a ordem automaticamente (último + 1)
-        $data['order'] = Consultant::max('order') + 1;
+        // Se a ordem não for preenchida (ou vier 0/null), calcula automático
+        if (!isset($data['order']) || $data['order'] === null) {
+            $data['order'] = Consultant::max('order') + 1;
+        }
 
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('consultants', 'public');
@@ -152,27 +145,32 @@ class ConsultantController extends Controller
 
     public function update(Request $request, Consultant $consultant)
     {
+        // AJUSTE CRÍTICO: 'email' agora é 'nullable' também na edição
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:consultants,email,' . $consultant->id,
-            'phone' => 'nullable|string|max:20',
-            'role' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|max:5120',
-            'bio' => 'nullable|string',
-            'domain' => 'nullable|string|max:100|unique:consultants,domain,' . $consultant->id,
-            'lp_slug' => 'nullable|string|max:50|unique:consultants,lp_slug,' . $consultant->id,
-            'whatsapp' => 'nullable|string|max:20',
-            'facebook' => 'nullable|url',
+            'name'      => 'required|string|max:255',
+            'email'     => 'nullable|email|unique:consultants,email,' . $consultant->id,
+            'phone'     => 'nullable|string|max:20',
+            'role'      => 'nullable|string|max:100',
+            'photo'     => 'nullable|image|max:5120',
+            'bio'       => 'nullable|string',
+            'domain'    => 'nullable|string|max:100|unique:consultants,domain,' . $consultant->id,
+            'lp_slug'   => 'nullable|string|max:50|unique:consultants,lp_slug,' . $consultant->id,
+            'whatsapp'  => 'nullable|string|max:20',
+            'facebook'  => 'nullable|url',
             'instagram' => 'nullable|url',
-            'linkedin' => 'nullable|url',
-            'tiktok' => 'nullable|url',
+            'linkedin'  => 'nullable|url',
+            'tiktok'    => 'nullable|url',
+            'order'     => 'nullable|integer',
         ]);
 
         $data['is_active'] = $request->has('is_active');
-        $data['has_lp'] = $request->has('has_lp');
+        
+        // Mantém o estado anterior de has_lp se o campo não estiver no form
+        if ($request->exists('has_lp')) {
+            $data['has_lp'] = $request->has('has_lp');
+        }
 
         if ($request->hasFile('photo')) {
-            // Remove a antiga se não for padrão
             if ($consultant->photo && !str_contains($consultant->photo, 'default')) {
                 Storage::disk('public')->delete($consultant->photo);
             }
