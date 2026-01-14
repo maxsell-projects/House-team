@@ -4,7 +4,7 @@
 
 {{-- 
     1. OVERRIDE DE DESIGN SYSTEM (SE TIVER CONSULTORA)
-    Transforma a ferramenta em "Navy & Gold" automaticamente.
+    Transforma a ferramenta em "Navy & Gold" automaticamente se houver consultora.
 --}}
 @if(isset($consultant))
     <style>
@@ -57,9 +57,6 @@
             background-color: var(--color-gold) !important;
             transform: translateY(-2px);
         }
-
-        /* Fundo Carbon Fibre para Consultora (opcional, sobrescreve o padrão se quiser) */
-        /* .bg-ht-navy.py-20 { background-image: none !important; background-color: var(--color-navy) !important; } */
     </style>
 @endif
 
@@ -365,6 +362,7 @@
 <script>
     function imtCalculator() {
         return {
+            // --- DADOS ---
             location: 'continente',
             purpose: 'hpp',
             propertyValue: 250000,
@@ -380,6 +378,7 @@
             finalStamp: 0,
             totalPayable: 0,
             
+            // Variáveis de Transparência (Corrigidas)
             imtBreakdown: {
                 taxableValue: 0,
                 rateText: 'N/A',
@@ -392,11 +391,13 @@
             },
             showBreakdown: false,
 
+            // Variáveis do Modal de Lead
             showLeadModal: false,
             loading: false,
             lead_name: '',
             lead_email: '',
 
+            // --- MÉTODOS DE UI ---
             setBuyerEligible(buyerIndex, value) {
                 if (buyerIndex === 1) this.buyer1Eligible = value;
                 if (buyerIndex === 2) this.buyer2Eligible = value;
@@ -414,20 +415,17 @@
             },
 
             checkAge(buyerIndex) {
-                if (buyerIndex === 1) {
-                    if (this.buyer1Age > 35) this.buyer1Eligible = false;
-                }
-                if (buyerIndex === 2) {
-                    if (this.buyer2Age > 35) this.buyer2Eligible = false;
-                }
+                if (buyerIndex === 1 && this.buyer1Age > 35) this.buyer1Eligible = false;
+                if (buyerIndex === 2 && this.buyer2Age > 35) this.buyer2Eligible = false;
             },
 
-            // --- Lógica de Cálculo (Mantida do Original) ---
+            // --- LÓGICA DE CÁLCULO (IMPORTADA & CORRIGIDA) ---
+            
             calculateNormalIMT(valor, tabela) {
                 let taxa = 0;
                 let parcelaAbater = 0;
                 
-                // HPP Continente (Tabela Atualizada 2024/2025)
+                // TABELAS IMT 2025
                 if (tabela === 'hpp_continente') {
                     if (valor <= 104261) { taxa = 0; parcelaAbater = 0; }
                     else if (valor <= 142618) { taxa = 0.02; parcelaAbater = 2085.22; }
@@ -439,10 +437,39 @@
                     return Math.max(0, (valor * taxa) - parcelaAbater);
                 }
 
-                // ... (Outras tabelas mantidas do original) ...
-                // Para economizar espaço, assuma que as outras tabelas estão aqui 
-                // Se precisar, posso expandir tudo novamente.
-                return 0; // Fallback
+                if (tabela === 'hpp_ilhas') {
+                    if (valor <= 130326) { taxa = 0; parcelaAbater = 0; }
+                    else if (valor <= 178273) { taxa = 0.02; parcelaAbater = 2606.52; }
+                    else if (valor <= 243073) { taxa = 0.05; parcelaAbater = 7954.71; }
+                    else if (valor <= 405073) { taxa = 0.07; parcelaAbater = 12816.17; }
+                    else if (valor <= 810145) { taxa = 0.08; parcelaAbater = 16866.90; }
+                    else if (valor <= 1410359) { return valor * 0.06; }
+                    else { return valor * 0.075; }
+                    return Math.max(0, (valor * taxa) - parcelaAbater);
+                }
+
+                if (tabela === 'secundaria_continente') {
+                    if (valor <= 104261) { taxa = 0.01; parcelaAbater = 0; }
+                    else if (valor <= 142618) { taxa = 0.02; parcelaAbater = 1042.61; }
+                    else if (valor <= 194458) { taxa = 0.05; parcelaAbater = 5321.15; }
+                    else if (valor <= 324058) { taxa = 0.07; parcelaAbater = 9210.31; }
+                    else if (valor <= 621501) { taxa = 0.08; parcelaAbater = 12450.89; }
+                    else if (valor <= 1128287) { return valor * 0.06; }
+                    else { return valor * 0.075; }
+                    return Math.max(0, (valor * taxa) - parcelaAbater);
+                }
+
+                if (tabela === 'secundaria_ilhas') {
+                    if (valor <= 130326) { taxa = 0.01; parcelaAbater = 0; }
+                    else if (valor <= 178273) { taxa = 0.02; parcelaAbater = 1303.26; }
+                    else if (valor <= 243073) { taxa = 0.05; parcelaAbater = 6651.45; }
+                    else if (valor <= 405073) { taxa = 0.07; parcelaAbater = 11512.91; }
+                    else if (valor <= 776876) { taxa = 0.08; parcelaAbater = 15563.64; }
+                    else if (valor <= 1410359) { return valor * 0.06; }
+                    else { return valor * 0.075; }
+                    return Math.max(0, (valor * taxa) - parcelaAbater);
+                }
+                return 0;
             },
 
             calculateYoungIMT(valor, location) {
@@ -450,32 +477,117 @@
                 const limitParcial = location === 'continente' ? 648022 : 810145;
                 const taxaExcedente = 0.08;
 
-                if (valor <= limitIsencao) return 0;
-                if (valor <= limitParcial) return (valor - limitIsencao) * taxaExcedente;
-                
-                const tabela = location === 'continente' ? 'hpp_continente' : 'hpp_ilhas';
-                return this.calculateNormalIMT(valor, tabela);
+                if (valor <= limitIsencao) {
+                    return 0; 
+                } else if (valor <= limitParcial) {
+                    return (valor - limitIsencao) * taxaExcedente;
+                } else {
+                    const tabela = location === 'continente' ? 'hpp_continente' : 'hpp_ilhas';
+                    return this.calculateNormalIMT(valor, tabela);
+                }
             },
 
             calculate() {
                 let valorTotal = this.propertyValue || 0;
+                
                 if (valorTotal <= 0) {
-                    this.finalIMT = 0; this.finalStamp = 0; this.totalPayable = 0;
+                    this.finalIMT = 0;
+                    this.finalStamp = 0;
+                    this.totalPayable = 0;
+                    this.imtBreakdown = { taxableValue: 0, rateText: 'N/A', abatement: 0, finalIMT: 0, isJovemBenefit: false, isMarginal: false, marginalExemption: 0, marginalRate: 0 };
                     return;
                 }
 
-                // ... (Lógica de cálculo mantida idêntica à do Simulador original) ...
-                // Recalcula IMT e Selo
+                let imtBaseNormal = 0;
+                let rateSelo = 0.008; 
+                let isHPP = this.purpose === 'hpp';
+                let isContinente = this.location === 'continente';
+                let imtBreakdownText = '';
+
+                if (this.purpose === 'rustico') {
+                    imtBaseNormal = valorTotal * 0.05;
+                    imtBreakdownText = '5% (Taxa Única)';
+                } else if (this.purpose === 'urbano') {
+                    imtBaseNormal = valorTotal * 0.065;
+                    imtBreakdownText = '6.5% (Taxa Única)';
+                } else if (this.purpose === 'offshore_pessoal' || this.purpose === 'offshore_entidade') {
+                    imtBaseNormal = valorTotal * 0.10;
+                    imtBreakdownText = '10% (Paraíso Fiscal)';
+                } else {
+                    let tabela = isHPP ? 
+                                (isContinente ? 'hpp_continente' : 'hpp_ilhas') : 
+                                (isContinente ? 'secundaria_continente' : 'secundaria_ilhas');
+                    
+                    imtBaseNormal = this.calculateNormalIMT(valorTotal, tabela);
+                    imtBreakdownText = isHPP ? 'Tabela HPP' : 'Tabela Secundária';
+                }
+
+                let imtBaseJovem = imtBaseNormal;
+                let seloBaseJovem = valorTotal * rateSelo;
+                let isJovemBenefitApplied = false;
+                let youngBuyersCount = 0;
                 
-                // Exemplo simplificado para demonstração (substituir pela lógica completa se necessário)
-                this.finalIMT = valorTotal * 0.01; // Placeholder
-                this.finalStamp = valorTotal * 0.008;
-                this.totalPayable = this.finalIMT + this.finalStamp;
+                const isBuyer1Eligible = this.buyer1Eligible && this.buyer1Age <= 35;
+                const isBuyer2Eligible = this.buyersCount === 2 && this.buyer2Eligible && this.buyer2Age <= 35;
+                youngBuyersCount = (isBuyer1Eligible ? 1 : 0) + (isBuyer2Eligible ? 1 : 0);
+
+                if (isHPP && youngBuyersCount > 0) {
+                    isJovemBenefitApplied = true;
+                    const limitIsencao = isContinente ? 324058 : 405073;
+                    const limitParcial = isContinente ? 648022 : 810145;
+                    
+                    if (valorTotal <= limitParcial) {
+                        imtBaseJovem = this.calculateYoungIMT(valorTotal, this.location);
+                        
+                        if (valorTotal <= limitIsencao) {
+                            seloBaseJovem = 0;
+                            imtBreakdownText = 'Isenção IMT Jovem';
+                            this.imtBreakdown.isMarginal = false;
+                            this.imtBreakdown.marginalExemption = valorTotal;
+                        } else {
+                            seloBaseJovem = (valorTotal - limitIsencao) * 0.008;
+                            imtBreakdownText = '8% s/ Excedente Jovem';
+                            this.imtBreakdown.isMarginal = true;
+                            this.imtBreakdown.marginalExemption = limitIsencao;
+                            this.imtBreakdown.marginalRate = 8;
+                        }
+                    } else {
+                         imtBreakdownText = 'Taxa Normal (Acima limite Jovem)';
+                    }
+                }
                 
-                this.imtBreakdown.finalIMT = this.finalIMT;
+                this.imtBreakdown.isJovemBenefit = isJovemBenefitApplied;
+
+                let buyers = this.buyersCount;
+                let finalIMT = 0;
+                let finalStamp = 0;
+
+                for (let i = 1; i <= buyers; i++) {
+                    let isEligible = false;
+                    if (this.purpose === 'hpp') {
+                        if (i === 1 && isBuyer1Eligible) isEligible = true;
+                        if (i === 2 && isBuyer2Eligible) isEligible = true;
+                    }
+
+                    if (isEligible) {
+                        finalIMT += (imtBaseJovem / buyers);
+                        finalStamp += (seloBaseJovem / buyers);
+                    } else {
+                        finalIMT += (imtBaseNormal / buyers);
+                        finalStamp += ((valorTotal * rateSelo) / buyers);
+                    }
+                }
+                
+                this.finalIMT = finalIMT;
+                this.finalStamp = finalStamp;
+                this.totalPayable = finalIMT + finalStamp;
+
+                this.imtBreakdown.rateText = imtBreakdownText;
                 this.imtBreakdown.taxableValue = valorTotal;
+                this.imtBreakdown.finalIMT = finalIMT;
             },
 
+            // --- LÓGICA DE ENVIO DE LEAD (DO HOUSE TEAM) ---
             async submitLead() {
                 if(!this.lead_name || !this.lead_email) { 
                     alert('{{ __('tools.imt.alert_fill') }}'); 
@@ -484,7 +596,6 @@
                 this.loading = true;
                 
                 try {
-                    // URL CORRIGIDA PARA FUNCIONAR EM SUBDOMÍNIOS
                     const response = await fetch('{{ url("/ferramentas/imt/enviar") }}', {
                         method: 'POST',
                         headers: { 
