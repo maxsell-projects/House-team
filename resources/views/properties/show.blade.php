@@ -2,10 +2,7 @@
 
 @section('content')
 
-{{-- 
-    1. OVERRIDE DE DESIGN SYSTEM (SE TIVER CONSULTORA)
-    Transforma a página de "House Team" para "Navy & Gold" automaticamente.
---}}
+{{-- 1. OVERRIDE DE DESIGN SYSTEM (SE TIVER CONSULTORA) --}}
 @if(isset($consultant))
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap');
@@ -17,11 +14,9 @@
             --color-navy: #1e293b;
         }
 
-        /* Override de Fontes */
         body { font-family: var(--font-sans) !important; }
         h1, h2, h3, h4 { font-family: var(--font-serif) !important; }
 
-        /* Override de Cores (Substitui o vermelho/azul padrão) */
         .bg-ht-accent { background-color: var(--color-gold) !important; }
         .text-ht-accent { color: var(--color-gold) !important; }
         .border-ht-accent { border-color: var(--color-gold) !important; }
@@ -30,23 +25,25 @@
         .bg-ht-navy { background-color: var(--color-navy) !important; }
         .text-ht-navy { color: var(--color-navy) !important; }
 
-        /* Ajustes Específicos */
         .hover\:bg-ht-accent:hover { background-color: #b08d4b !important; }
         .shadow-blue-500\/30 { --tw-shadow-color: rgba(197, 160, 89, 0.4) !important; }
         
-        /* Botões mais elegantes */
         button, a.block { border-radius: 4px !important; text-transform: uppercase; letter-spacing: 1px; font-size: 11px; font-weight: 700; }
     </style>
 @endif
 
-{{-- CONTAINER PRINCIPAL --}}
+{{-- 
+    CONTAINER PRINCIPAL COM LÓGICA DE IMAGENS REORGANIZADA 
+    Aqui garantimos que o array 'images' respeite a ordem do banco
+--}}
 <div class="pt-32 pb-12 bg-slate-50 relative" 
      x-data="{ 
         isModalOpen: false, 
-        activeImage: '{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}',
+        {{-- Pegamos a primeira imagem da lista ordenada para ser a inicial --}}
+        activeImage: '{{ $property->cover_image ? asset('storage/' . $property->cover_image) : ($property->images->first() ? asset('storage/' . $property->images->first()->path) : asset('img/porto.jpg')) }}',
         images: [
-            '{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}',
-            @foreach($property->images as $img)
+            @if($property->cover_image) '{{ asset('storage/' . $property->cover_image) }}', @endif
+            @foreach($property->images->sortBy('order') as $img)
                 '{{ asset('storage/' . $img->path) }}',
             @endforeach
         ],
@@ -69,7 +66,6 @@
     @keydown.arrow-left.window="if(isModalOpen) prev()"
 >
     
-    {{-- Decoração de Fundo (Apenas se tiver consultor) --}}
     @if(isset($consultant))
         <div class="absolute top-0 right-0 w-1/3 h-96 bg-ht-navy opacity-5 -z-10" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 100%);"></div>
     @endif
@@ -104,7 +100,7 @@
             </div>
         </div>
 
-        {{-- GALERIA DE IMAGENS --}}
+        {{-- GALERIA DE IMAGENS ORDENADA --}}
         <div class="relative rounded-[2rem] overflow-hidden shadow-2xl bg-slate-900 group mb-16 h-[50vh] md:h-[70vh]" data-aos="zoom-in">
             <div class="absolute inset-0 transition-all duration-700 ease-in-out cursor-zoom-in" @click="isModalOpen = true">
                 <img :src="activeImage" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500" alt="{{ $property->title }}">
@@ -114,14 +110,16 @@
                     <span class="text-xs font-bold uppercase tracking-widest">{{ __('portfolio.zoom_image') }}</span>
                 </div>
             </div>
-            {{-- Setas de Navegação --}}
+
+            {{-- Setas --}}
             <button @click.stop="prev()" class="absolute left-6 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 backdrop-blur-md text-white p-4 rounded-full transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 z-20">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <button @click.stop="next()" class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 backdrop-blur-md text-white p-4 rounded-full transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 z-20">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
-            {{-- Miniaturas --}}
+
+            {{-- Miniaturas Reais --}}
             <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 overflow-x-auto max-w-[90%] p-2 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 z-20 scrollbar-hide">
                 <template x-for="(img, index) in images" :key="index">
                     <button @click.stop="setImage(index)" 
@@ -137,7 +135,6 @@
             
             {{-- COLUNA ESQUERDA (Info Principal) --}}
             <div class="lg:col-span-8 space-y-12">
-                {{-- STATS GRID --}}
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center group hover:border-ht-accent/30 transition-colors">
                         <div class="text-ht-accent mb-2 transform group-hover:scale-110 transition-transform flex justify-center">
@@ -220,12 +217,6 @@
             {{-- COLUNA DIREITA (Sidebar Sticky) --}}
             <div class="lg:col-span-4">
                 <div class="sticky top-32 space-y-6">
-                    
-                    {{-- 
-                        LÓGICA CONSULTOR ATUAL
-                        Se houver um consultor na URL (Landing Page mode), usamos ele.
-                        Senão, usamos o consultor dono do imóvel.
-                    --}}
                     @php
                         $currentConsultant = isset($consultant) ? $consultant : $property->consultant;
                     @endphp
@@ -240,9 +231,9 @@
                         @if($currentConsultant)
                             <div class="relative z-10 bg-white/5 p-6 rounded-2xl border border-white/10 mb-6 backdrop-blur-sm">
                                 <div class="flex items-center gap-4 mb-4">
-                                    <img src="{{ $currentConsultant->image_url ?? asset('img/team/' . $currentConsultant->photo) }}" 
+                                    <img src="{{ asset('img/team/' . $currentConsultant->photo) }}" 
                                          class="w-14 h-14 rounded-full object-cover border-2 border-ht-accent shadow-md"
-                                         onerror="this.src='{{ asset('img/logo.png') }}'">
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($currentConsultant->name) }}&color=7F9CF5&background=EBF4FF'">
                                     <div>
                                         <p class="text-[10px] text-ht-accent font-bold uppercase tracking-wider">{{ __('portfolio.consultant_label') }}</p>
                                         <p class="font-bold text-lg leading-tight">{{ $currentConsultant->name }}</p>
