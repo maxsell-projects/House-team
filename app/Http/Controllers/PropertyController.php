@@ -287,10 +287,9 @@ class PropertyController extends Controller
     ]);
 
     $status = $property->is_visible ? 'Ativo' : 'Inativo';
-    $color = $property->is_visible ? 'text-emerald-600' : 'text-slate-600';
     
-    // Removido o <strong>, mantendo apenas a estilização de cor
-    return back()->with('success', "Imóvel agora está <span class='{$color} font-bold'>{$status}</span>.");
+    // Enviamos apenas o nome do status para a sessão
+    return back()->with('success_status', $status);
 }
 
     /**

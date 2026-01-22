@@ -5,14 +5,25 @@
 
 @section('content')
 
-    {{-- 1. Carregar biblioteca de Drag & Drop (CDN rápido) --}}
+    {{-- 1. Carregar biblioteca de Drag & Drop --}}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-    {{-- Feedback de Sucesso Limpo (Sem strong) --}}
-    @if(session('success'))
-        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="text-sm font-medium tracking-tight leading-tight">{!! session('success') !!}</div>
+    {{-- Feedback de Sucesso Estilizado (Sem duplicidade) --}}
+    @if(session('success_status'))
+        @php
+            $isAtivo = session('success_status') === 'Ativo';
+            $colorClass = $isAtivo ? 'text-emerald-600' : 'text-slate-600';
+            $bgClass = $isAtivo ? 'bg-emerald-50' : 'bg-slate-50';
+            $borderClass = $isAtivo ? 'border-emerald-200' : 'border-slate-200';
+        @endphp
+
+        <div class="mb-6 {{ $bgClass }} border {{ $borderClass }} {{ $colorClass }} px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm animate-pulse">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="text-sm font-medium">
+                Imóvel agora está <span class="font-bold underline">{{ session('success_status') }}</span>.
+            </div>
         </div>
     @endif
 
@@ -142,7 +153,7 @@
                                 <form action="{{ route('admin.properties.toggle', $property->id) }}" method="POST">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" class="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-ht-blue hover:border-ht-blue transition-all shadow-sm" title="{{ $property->is_visible ? 'Desativar Imóvel' : 'Ativar Imóvel' }}">
+                                    <button type="submit" class="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-ht-blue hover:border-ht-blue transition-all shadow-sm" title="{{ $property->is_visible ? 'Desativar' : 'Ativar' }}">
                                         @if($property->is_visible)
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
                                         @else
@@ -166,7 +177,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </a>
                                 
-                                <form action="{{ route('admin.properties.destroy', $property) }}" method="POST" onsubmit="return confirm('Tem a certeza que deseja eliminar este imóvel?');">
+                                <form action="{{ route('admin.properties.destroy', $property) }}" method="POST" onsubmit="return confirm('Tem a certeza?');">
                                     @csrf
                                     @method('DELETE')
                                     <button class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all shadow-sm" title="Apagar">
