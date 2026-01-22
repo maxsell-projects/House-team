@@ -118,8 +118,8 @@ return [
             'host' => '127.0.0.1',
             'port' => '3306',
             'database' => 'house_legacy_wp', // O banco que criamos no terminal
-            'username' => 'root',
-            'password' => '', // Se tiver senha no XAMPP, coloque aqui
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''), // Se tiver senha no XAMPP, coloque aqui
             'unix_socket' => '',
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
