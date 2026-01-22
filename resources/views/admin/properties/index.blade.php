@@ -8,11 +8,11 @@
     {{-- 1. Carregar biblioteca de Drag & Drop (CDN rápido) --}}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-    {{-- Feedback de Sucesso --}}
+    {{-- Feedback de Sucesso Limpo (Sem strong) --}}
     @if(session('success'))
-        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm animate-pulse">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="font-bold text-sm">{!! session('success') !!}</div>
+        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="text-sm font-medium tracking-tight leading-tight">{!! session('success') !!}</div>
         </div>
     @endif
 
@@ -33,7 +33,6 @@
     {{-- FILTROS --}}
     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6">
         <form action="{{ route('admin.properties.index') }}" method="GET" class="flex flex-wrap items-end gap-4">
-            {{-- Filtro Negócio --}}
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 ml-1">Negócio</label>
                 <select name="status" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ht-blue/20">
@@ -43,7 +42,6 @@
                 </select>
             </div>
 
-            {{-- Filtro Visibilidade --}}
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 ml-1">Visibilidade</label>
                 <select name="visibility" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ht-blue/20">
@@ -127,12 +125,11 @@
                             </span>
                         </td>
 
-                        {{-- FEEDBACK VISIBILIDADE --}}
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 @if($property->is_visible)
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700 border border-green-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                         Ativo
                                     </span>
                                 @else
@@ -157,7 +154,7 @@
                         </td>
 
                         <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2 text-right">
+                            <div class="flex items-center justify-end gap-2">
                                 <form action="{{ route('admin.properties.moveToTop', $property) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 transition-all shadow-sm" title="Mover para o topo">
