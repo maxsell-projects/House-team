@@ -281,16 +281,17 @@ class PropertyController extends Controller
      * TOGGLE VISIBILITY: Inverte o status e retorna feedback com HTML
      */
     public function toggleVisibility(Property $property)
-    {
-        $property->update([
-            'is_visible' => !$property->is_visible
-        ]);
+{
+    $property->update([
+        'is_visible' => !$property->is_visible
+    ]);
 
-        $status = $property->is_visible ? 'Ativo' : 'Inativo';
-        $color = $property->is_visible ? 'text-emerald-600' : 'text-slate-600';
-        
-        return back()->with('success', "Imóvel agora está <strong class='{$color}'>{$status}</strong>.");
-    }
+    $status = $property->is_visible ? 'Ativo' : 'Inativo';
+    $color = $property->is_visible ? 'text-emerald-600' : 'text-slate-600';
+    
+    // Removido o <strong>, mantendo apenas a estilização de cor
+    return back()->with('success', "Imóvel agora está <span class='{$color} font-bold'>{$status}</span>.");
+}
 
     /**
      * REORDER: Salva a ordem vinda do Drag & Drop (AJAX)
