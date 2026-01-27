@@ -243,15 +243,18 @@
                     <span class="text-gold font-bold tracking-widest text-xs uppercase mb-2 block">{{ __('consultant_lp.properties_subtitle') }}</span>
                     <h2 class="text-4xl text-navy font-serif">{{ __('consultant_lp.properties_title') }}</h2>
                 </div>
-                <a href="https://houseteamconsultores.pt/imoveis" target="_blank" class="text-navy border-b border-navy pb-1 text-xs font-bold uppercase hover:text-gold hover:border-gold transition">
-                    {{ __('consultant_lp.view_inventory') }}
+                
+                {{-- AQUI ESTÁ A CORREÇÃO: LINK PARA A ROTA INTERNA --}}
+                <a href="{{ url('/imoveis') }}" class="text-navy border-b border-navy pb-1 text-xs font-bold uppercase hover:text-gold hover:border-gold transition">
+                    Ver Inventário
                 </a>
             </div>
 
             @if($properties->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     @foreach($properties as $property)
-                        <a href="{{ route('properties.show', $property) }}?cid={{ $consultant->id }}" target="_blank" class="property-card group block bg-white shadow-sm overflow-hidden" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
+                        {{-- Mantemos o link para o detalhe interno --}}
+                        <a href="{{ route('consultant.property.show', ['domain' => $consultant->domain ?? $consultant->lp_slug, 'property' => $property]) }}" class="property-card group block bg-white shadow-sm overflow-hidden" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
                             <div class="relative overflow-hidden aspect-[4/3]">
                                 <img src="{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}" 
                                      class="w-full h-full object-cover transform group-hover:scale-110 transition duration-1000 ease-out">
