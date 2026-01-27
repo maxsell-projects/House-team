@@ -10,7 +10,7 @@
     
     <div class="absolute inset-0 bg-gradient-to-b from-ht-navy/80 via-ht-navy/20 to-ht-navy"></div>
 
-    {{-- LOGO - CORRIGIDO: top-28 no mobile para descer da header fixed --}}
+    {{-- LOGO --}}
     <div class="absolute top-28 left-6 md:top-10 md:left-10 z-30" data-aos="fade-right">
         <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center p-4 shadow-2xl ring-4 ring-white/30 backdrop-blur-md">
             <img src="{{ asset('img/logo.png') }}" alt="House Team Logo" class="w-full h-full object-contain">
@@ -31,7 +31,7 @@
 
     <div class="relative z-10 container mx-auto px-6 text-center" data-aos="fade-up">
         
-        {{-- CARROSSEL DE TEXTO (ALPINE JS COM TRADUÇÃO) --}}
+        {{-- CARROSSEL DE TEXTO --}}
         <div x-data="{ texts: [
                 '{{ __('hero.integrity') }}', 
                 '{{ __('hero.gratitude') }}', 
@@ -186,6 +186,21 @@
     <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#2563eb 1px, transparent 1px); background-size: 32px 32px;"></div>
     <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-ht-accent/10 to-transparent pointer-events-none"></div>
 
+    {{-- POPUP DE SUCESSO --}}
+    @if(session('success'))
+    <div x-data="{ show: true }" x-show="show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md text-center shadow-2xl relative">
+            <button @click="show = false" class="absolute top-4 right-4 text-slate-400 hover:text-ht-navy">✕</button>
+            <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-ht-navy mb-2">Pedido Recebido!</h3>
+            <p class="text-slate-500">Obrigado pelo seu contacto. A nossa equipa entrará em contacto muito em breve.</p>
+            <button @click="show = false" class="mt-6 px-6 py-2 bg-ht-navy text-white rounded-lg hover:bg-ht-accent transition">Fechar</button>
+        </div>
+    </div>
+    @endif
+
     <div class="container mx-auto px-6 relative z-10">
         <div class="text-center mb-16">
             <h2 class="text-4xl md:text-6xl font-black text-white mb-6">{{ __('valuation.title') }}</h2>
@@ -197,11 +212,34 @@
         <div x-data="{ 
             step: 1,
             type: 'apartamento',
+            year: '',
+            area: '',
             bedrooms: 2,
             bathrooms: 1,
             garages: 0, 
+            parking_type: '',
             features: [],
-            condition: ''
+            features_text: '',
+            condition: '',
+            name: '',
+            email: '',
+            phone: '',
+            is_owner: '',
+            
+            validateStep1() {
+                if(!this.year || !this.area || !this.parking_type) {
+                    alert('Por favor, preencha o Ano, Área e Tipo de Estacionamento.');
+                    return false;
+                }
+                this.step++;
+            },
+            validateStep2() {
+                if(!this.condition) {
+                    alert('Por favor, selecione o Estado de Conservação.');
+                    return false;
+                }
+                this.step++;
+            }
         }" class="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
             
             <form action="{{ route('contact') }}" method="POST">
@@ -225,14 +263,14 @@
                         
                         <div class="grid grid-cols-2 gap-4 mb-8">
                             <label class="cursor-pointer">
-                                <input type="radio" name="property_type" value="Casa" class="peer sr-only" @click="type = 'casa'">
+                                <input type="radio" name="property_type" value="Casa" class="peer sr-only" x-model="type">
                                 <div class="p-6 rounded-2xl border-2 border-slate-100 text-center peer-checked:border-ht-accent peer-checked:bg-blue-50 transition-all hover:border-slate-300">
                                     <svg class="w-8 h-8 mx-auto mb-2 text-slate-400 peer-checked:text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 01-1 1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                     <span class="font-bold text-slate-600 peer-checked:text-ht-navy">{{ __('valuation.type_house') }}</span>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
-                                <input type="radio" name="property_type" value="Apartamento" class="peer sr-only" @click="type = 'apartamento'" checked>
+                                <input type="radio" name="property_type" value="Apartamento" class="peer sr-only" x-model="type">
                                 <div class="p-6 rounded-2xl border-2 border-slate-100 text-center peer-checked:border-ht-accent peer-checked:bg-blue-50 transition-all hover:border-slate-300">
                                     <svg class="w-8 h-8 mx-auto mb-2 text-slate-400 peer-checked:text-ht-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                     <span class="font-bold text-slate-600 peer-checked:text-ht-navy">{{ __('valuation.type_flat') }}</span>
@@ -242,18 +280,18 @@
 
                         <div class="grid grid-cols-2 gap-6 mb-8">
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_year') }}</label>
-                                <input type="number" name="year" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-ht-accent outline-none" placeholder="Ex: 2010">
+                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_year') }} <span class="text-red-500">*</span></label>
+                                <input type="number" name="year" x-model="year" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-ht-accent outline-none" placeholder="Ex: 2010">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_area') }}</label>
-                                <input type="number" name="area" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-ht-accent outline-none" placeholder="Ex: 120">
+                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_area') }} <span class="text-red-500">*</span></label>
+                                <input type="number" name="area" x-model="area" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-ht-accent outline-none" placeholder="Ex: 120">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_bedrooms') }}</label>
+                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_bedrooms') }} <span class="text-red-500">*</span></label>
                                 <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-2">
                                     <button type="button" @click="bedrooms = Math.max(0, bedrooms - 1)" class="w-8 h-8 rounded-lg bg-white shadow text-ht-navy hover:bg-slate-100">-</button>
                                     <input type="hidden" name="bedrooms" :value="bedrooms">
@@ -262,7 +300,7 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_bathrooms') }}</label>
+                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_bathrooms') }} <span class="text-red-500">*</span></label>
                                 <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-2">
                                     <button type="button" @click="bathrooms = Math.max(0, bathrooms - 1)" class="w-8 h-8 rounded-lg bg-white shadow text-ht-navy hover:bg-slate-100">-</button>
                                     <input type="hidden" name="bathrooms" :value="bathrooms">
@@ -274,14 +312,14 @@
 
                         <div class="grid grid-cols-2 gap-6 mt-6">
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_garage_type') }}</label>
+                                <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_garage_type') }} <span class="text-red-500">*</span></label>
                                 <div class="relative">
-                                    <select name="parking_type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-ht-accent outline-none appearance-none text-slate-600">
-                                        <option value="">{{ __('valuation.select_placeholder') }}</option>
+                                    <select name="parking_type" x-model="parking_type" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-ht-accent outline-none appearance-none text-slate-600">
+                                        <option value="" disabled selected>{{ __('valuation.select_placeholder') }}</option>
+                                        <option value="Sem Parqueamento">Sem Parqueamento</option>
                                         <option value="Garagem (Box)">{{ __('valuation.garage_box') }}</option>
                                         <option value="Lugar de Parqueamento">{{ __('valuation.parking_spot') }}</option>
                                         <option value="Estacionamento Exterior">{{ __('valuation.parking_exterior') }}</option>
-                                        <option value="Garagem Dupla">{{ __('valuation.garage_double') }}</option>
                                     </select>
                                      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -305,7 +343,7 @@
                     <div x-show="step === 2" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-10" x-transition:enter-end="opacity-100 translate-x-0" style="display: none;">
                         <h3 class="text-2xl font-bold text-ht-navy mb-6">{{ __('valuation.section_features') }}</h3>
                         
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
                             @php
                                 $featuresMap = [
                                     'Terraço' => 'feat_terrace', 
@@ -328,8 +366,14 @@
                             @endforeach
                         </div>
 
+                        {{-- CAMPO TEXTO LIVRE ADICIONADO --}}
+                        <div class="mb-6">
+                            <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Outras Características / Notas</label>
+                            <textarea name="features_text" x-model="features_text" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-ht-accent outline-none resize-none" placeholder="Ex: Precisa de pequenas obras na cozinha..."></textarea>
+                        </div>
+
                         <div class="space-y-3">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_condition') }}</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">{{ __('valuation.label_condition') }} <span class="text-red-500">*</span></p>
                             @php
                                 $conditionsMap = [
                                     'Novo/Renovado (Design)' => 'cond_new', 
@@ -341,7 +385,7 @@
                             @endphp
                             @foreach($conditionsMap as $dbValue => $transKey)
                                 <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-ht-accent/30 cursor-pointer group">
-                                    <input type="radio" name="condition" value="{{ $dbValue }}" class="accent-ht-accent w-4 h-4">
+                                    <input type="radio" name="condition" value="{{ $dbValue }}" x-model="condition" class="accent-ht-accent w-4 h-4">
                                     <span class="text-sm font-medium text-slate-600 group-hover:text-ht-navy">{{ __('valuation.' . $transKey) }}</span>
                                 </label>
                             @endforeach
@@ -355,9 +399,14 @@
                         <div class="space-y-4">
                             <input type="text" name="address" placeholder="{{ __('valuation.placeholder_address') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-ht-accent outline-none font-medium">
                             
-                            <div class="grid grid-cols-2 gap-4">
-                                <input type="text" name="name" placeholder="{{ __('valuation.placeholder_name') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-ht-accent outline-none font-medium">
-                                <input type="email" name="email" placeholder="{{ __('valuation.placeholder_email') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-ht-accent outline-none font-medium">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" name="name" required placeholder="{{ __('valuation.placeholder_name') }} *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-ht-accent outline-none font-medium">
+                                <input type="email" name="email" required placeholder="{{ __('valuation.placeholder_email') }} *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-ht-accent outline-none font-medium">
+                            </div>
+
+                            {{-- CAMPO TELEFONE ADICIONADO --}}
+                            <div>
+                                <input type="tel" name="phone" x-model="phone" required placeholder="Telemóvel *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-ht-accent outline-none font-medium">
                             </div>
 
                             <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
@@ -380,7 +429,12 @@
                     <div class="mt-8 flex justify-between">
                         <button type="button" @click="step--" x-show="step > 1" class="text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-ht-navy">← {{ __('valuation.btn_back') }}</button>
                         <div x-show="step === 1"></div> 
-                        <button type="button" @click="step++" x-show="step < 3" class="bg-ht-navy text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-ht-accent transition shadow-lg">
+                        
+                        {{-- BOTÕES PRÓXIMO COM VALIDAÇÃO --}}
+                        <button type="button" @click="validateStep1()" x-show="step === 1" class="bg-ht-navy text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-ht-accent transition shadow-lg">
+                            {{ __('valuation.btn_next') }}
+                        </button>
+                        <button type="button" @click="validateStep2()" x-show="step === 2" class="bg-ht-navy text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-ht-accent transition shadow-lg">
                             {{ __('valuation.btn_next') }}
                         </button>
                         

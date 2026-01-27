@@ -47,7 +47,8 @@ class HighLevelService
             'email'     => $data['email'] ?? null,
             'phone'     => $data['phone'] ?? null,
             'tags'      => $data['tags'] ?? [],
-            'source'    => 'Site House Team - Whatsapp',
+            // CORREÇÃO: Usa a source passada no array ou fallback para padrão
+            'source'    => $data['source'] ?? 'Site House Team - Whatsapp',
         ];
 
         // Remove campos vazios para limpar o payload
@@ -157,7 +158,8 @@ class HighLevelService
             'contactId'  => $contactId,
             'title'      => ($data['name'] ?? 'Cliente') . $conf['suffix'],
             'status'     => 'open',
-            'source'     => 'Site House Team - Whatsapp',
+            // CORREÇÃO: Usa a source dinâmica também na oportunidade
+            'source'     => $data['source'] ?? 'Site House Team - Whatsapp',
         ];
 
         if (!empty($data['property_price'])) {
