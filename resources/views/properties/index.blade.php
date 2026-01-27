@@ -3,8 +3,8 @@
 @section('content')
 
 {{-- HERO HEADER --}}
-{{-- Lógica: Se for Consultor, Hero mais sóbrio. Se for Site Principal, Hero Padrão --}}
-<div class="{{ isset($consultant) ? 'bg-slate-900' : 'bg-ht-navy' }} text-white pt-32 pb-20 text-center relative overflow-hidden">
+{{-- Ajuste: pt-40 se for consultor para descolar da navbar --}}
+<div class="{{ isset($consultant) ? 'bg-slate-900 pt-40' : 'bg-ht-navy pt-32' }} text-white pb-20 text-center relative overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
     <div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
     
@@ -30,11 +30,9 @@
                 <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 sticky top-32">
                     <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
                         <h3 class="font-bold text-xl text-ht-navy">{{ __('portfolio.filter_title') }}</h3>
-                        {{-- Link Limpar Filtros ajustado --}}
                         <a href="{{ isset($consultant) ? url('/imoveis') : route('portfolio') }}" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-ht-accent transition-colors">{{ __('portfolio.filter_clear') }}</a>
                     </div>
                     
-                    {{-- Form Action ajustado: Se consultor, submete para a mesma URL. Se site principal, route('portfolio') --}}
                     <form action="{{ isset($consultant) ? url('/imoveis') : route('portfolio') }}" method="GET" class="space-y-6">
                         
                         {{-- Localização --}}
@@ -104,7 +102,6 @@
                             </div>
                         </div>
 
-                        {{-- Botão de Filtro --}}
                         <button type="submit" class="w-full text-white font-black uppercase tracking-widest text-xs py-4 rounded-xl transition-all shadow-lg hover:shadow-blue-500/30 transform active:scale-95 {{ isset($consultant) ? 'bg-[#c5a059] hover:bg-[#b08d48]' : 'bg-ht-accent hover:bg-blue-600' }}">
                             {{ __('portfolio.btn_filter') }}
                         </button>
@@ -123,18 +120,16 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @forelse($properties as $property)
-                        <a href="{{ route('properties.show', $property) }}{{ isset($consultant) ? '?cid='.$consultant->id : '' }}" class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100">
+                        <a href="{{ isset($consultant) ? route('consultant.property.show', ['domain' => $consultant->domain ?? $consultant->lp_slug, 'property' => $property]) : route('properties.show', $property) }}" class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100">
                             
                             <div class="relative h-64 overflow-hidden">
                                 <img src="{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}" 
                                      alt="{{ $property->title }}" 
                                      class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
                                 
-                                {{-- BADGE TIPO TRADUZIDO --}}
                                 <div class="absolute top-4 left-4 bg-slate-900 text-white px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider shadow-md">
                                     {{ __('property_type.' . \Illuminate\Support\Str::slug($property->type)) }}
                                 </div>
-                                {{-- BADGE STATUS TRADUZIDO --}}
                                 <div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1 text-[10px] font-bold text-ht-navy rounded-full uppercase tracking-wider shadow-sm">
                                     {{ __('property_status.' . \Illuminate\Support\Str::slug($property->status)) }}
                                 </div>
@@ -170,7 +165,8 @@
                                 <div class="flex justify-between items-end">
                                     <div>
                                         <p class="text-[10px] uppercase font-bold text-slate-400">{{ __('portfolio.label_price_short') }}</p>
-                                        <p class="text-xl font-black text-ht-accent">
+                                        {{-- PREÇO EM DOURADO PARA CONSULTOR --}}
+                                        <p class="text-xl font-black {{ isset($consultant) ? 'text-[#c5a059]' : 'text-ht-accent' }}">
                                             {{ $property->price ? '€ ' . number_format($property->price, 0, ',', '.') : __('portfolio.price_on_request') }}
                                         </p>
                                     </div>
