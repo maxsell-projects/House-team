@@ -3,14 +3,21 @@
 @section('content')
 
 {{-- HERO HEADER --}}
-<div class="bg-ht-navy text-white pt-32 pb-20 text-center relative overflow-hidden">
+{{-- Lógica: Se for Consultor, Hero mais sóbrio. Se for Site Principal, Hero Padrão --}}
+<div class="{{ isset($consultant) ? 'bg-slate-900' : 'bg-ht-navy' }} text-white pt-32 pb-20 text-center relative overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
     <div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
     
     <div class="container mx-auto px-6 relative z-10">
-        <p class="text-ht-accent font-bold text-xs uppercase tracking-[0.3em] mb-4">{{ __('portfolio.hero_badge') }}</p>
-        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4">{{ __('portfolio.hero_title') }}</h1>
-        <p class="text-slate-400 font-medium max-w-xl mx-auto">{{ __('portfolio.hero_desc') }}</p>
+        <p class="{{ isset($consultant) ? 'text-[#c5a059]' : 'text-ht-accent' }} font-bold text-xs uppercase tracking-[0.3em] mb-4">
+            {{ isset($consultant) ? $consultant->name : __('portfolio.hero_badge') }}
+        </p>
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4">
+            {{ isset($consultant) ? __('consultant_lp.properties_title') : __('portfolio.hero_title') }}
+        </h1>
+        <p class="text-slate-400 font-medium max-w-xl mx-auto">
+            {{ isset($consultant) ? __('consultant_lp.properties_subtitle') : __('portfolio.hero_desc') }}
+        </p>
     </div>
 </div>
 
@@ -23,10 +30,12 @@
                 <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 sticky top-32">
                     <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
                         <h3 class="font-bold text-xl text-ht-navy">{{ __('portfolio.filter_title') }}</h3>
-                        <a href="{{ route('portfolio') }}" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-ht-accent transition-colors">{{ __('portfolio.filter_clear') }}</a>
+                        {{-- Link Limpar Filtros ajustado --}}
+                        <a href="{{ isset($consultant) ? url('/imoveis') : route('portfolio') }}" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-ht-accent transition-colors">{{ __('portfolio.filter_clear') }}</a>
                     </div>
                     
-                    <form action="{{ route('portfolio') }}" method="GET" class="space-y-6">
+                    {{-- Form Action ajustado: Se consultor, submete para a mesma URL. Se site principal, route('portfolio') --}}
+                    <form action="{{ isset($consultant) ? url('/imoveis') : route('portfolio') }}" method="GET" class="space-y-6">
                         
                         {{-- Localização --}}
                         <div>
@@ -38,14 +47,12 @@
                             </div>
                         </div>
 
-                        {{-- Tipo de Imóvel (CORRIGIDO PARA INGLÊS + COMERCIAL) --}}
+                        {{-- Tipo de Imóvel --}}
                         <div>
                             <label class="text-xs font-bold uppercase tracking-wide text-ht-navy ml-1 mb-2 block">{{ __('portfolio.label_type') }}</label>
                             <div class="relative">
                                 <select name="type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 focus:outline-none focus:border-ht-accent focus:ring-1 focus:ring-ht-accent appearance-none transition-all cursor-pointer">
                                     <option value="">{{ __('portfolio.option_all') }}</option>
-                                    
-                                    {{-- Value em INGLÊS para bater com o banco --}}
                                     <option value="flat" {{ request('type') == 'flat' ? 'selected' : '' }}>{{ __('portfolio.type_apartment') }}</option>
                                     <option value="house" {{ request('type') == 'house' ? 'selected' : '' }}>{{ __('portfolio.type_villa') }}</option>
                                     <option value="land" {{ request('type') == 'land' ? 'selected' : '' }}>{{ __('portfolio.type_land') }}</option>
@@ -57,7 +64,7 @@
                             </div>
                         </div>
 
-                        {{-- Finalidade (MANTIDO EM PORTUGUÊS POIS CORRIGIMOS O BANCO) --}}
+                        {{-- Finalidade --}}
                         <div>
                             <label class="text-xs font-bold uppercase tracking-wide text-ht-navy ml-1 mb-3 block">{{ __('portfolio.label_status') }}</label>
                             <div class="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
@@ -97,7 +104,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-ht-accent text-white font-black uppercase tracking-widest text-xs py-4 rounded-xl hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/30 transform active:scale-95">
+                        {{-- Botão de Filtro --}}
+                        <button type="submit" class="w-full text-white font-black uppercase tracking-widest text-xs py-4 rounded-xl transition-all shadow-lg hover:shadow-blue-500/30 transform active:scale-95 {{ isset($consultant) ? 'bg-[#c5a059] hover:bg-[#b08d48]' : 'bg-ht-accent hover:bg-blue-600' }}">
                             {{ __('portfolio.btn_filter') }}
                         </button>
                     </form>
@@ -115,7 +123,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @forelse($properties as $property)
-                        <a href="{{ route('properties.show', $property) }}" class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100">
+                        <a href="{{ route('properties.show', $property) }}{{ isset($consultant) ? '?cid='.$consultant->id : '' }}" class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100">
                             
                             <div class="relative h-64 overflow-hidden">
                                 <img src="{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}" 
@@ -176,7 +184,7 @@
                         <div class="col-span-3 text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-300">
                             <svg class="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                             <p class="text-slate-500 font-medium">{{ __('portfolio.no_results') }}</p>
-                            <a href="{{ route('portfolio') }}" class="text-ht-accent font-bold text-sm hover:underline mt-2 inline-block">{{ __('portfolio.filter_clear') }}</a>
+                            <a href="{{ isset($consultant) ? url('/imoveis') : route('portfolio') }}" class="text-ht-accent font-bold text-sm hover:underline mt-2 inline-block">{{ __('portfolio.filter_clear') }}</a>
                         </div>
                     @endforelse
                 </div>

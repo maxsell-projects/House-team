@@ -7,11 +7,12 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         
+        {{-- CARD 1: TOTAL ATIVOS --}}
         <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
             <div class="flex justify-between items-start relative z-10">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Imóveis</p>
-                    <h3 class="text-4xl font-black text-ht-navy">{{ \App\Models\Property::count() }}</h3>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Ativos</p>
+                    <h3 class="text-4xl font-black text-ht-navy">{{ \App\Models\Property::where('is_visible', 1)->count() }}</h3>
                 </div>
                 <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-ht-blue group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -24,11 +25,12 @@
             <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
         </div>
 
+        {{-- CARD 2: VENDA (ATIVOS) --}}
         <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
             <div class="flex justify-between items-start relative z-10">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Venda</p>
-                    <h3 class="text-4xl font-black text-ht-navy">{{ \App\Models\Property::where('status', 'Venda')->count() }}</h3>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Venda (Ativos)</p>
+                    <h3 class="text-4xl font-black text-ht-navy">{{ \App\Models\Property::where('status', 'Venda')->where('is_visible', 1)->count() }}</h3>
                 </div>
                 <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -39,11 +41,12 @@
             </div>
         </div>
 
+        {{-- CARD 3: ARRENDAMENTO (ATIVOS) --}}
         <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
             <div class="flex justify-between items-start relative z-10">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Arrendamento</p>
-                    <h3 class="text-4xl font-black text-ht-navy">{{ \App\Models\Property::where('status', 'Arrendamento')->count() }}</h3>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Arrendamento (Ativos)</p>
+                    <h3 class="text-4xl font-black text-ht-navy">{{ \App\Models\Property::where('status', 'Arrendamento')->where('is_visible', 1)->count() }}</h3>
                 </div>
                 <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -59,8 +62,8 @@
     <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
         <div class="px-8 py-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h3 class="font-bold text-lg text-ht-navy">Últimas Adições</h3>
-                <p class="text-xs text-slate-400 mt-1">Imóveis adicionados recentemente ao sistema.</p>
+                <h3 class="font-bold text-lg text-ht-navy">Últimas Adições (Ativos)</h3>
+                <p class="text-xs text-slate-400 mt-1">Imóveis ativos adicionados recentemente ao sistema.</p>
             </div>
             <a href="{{ route('admin.properties.index') }}" class="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ht-blue hover:text-ht-navy transition-colors">
                 Ver Todos
@@ -80,7 +83,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @foreach(\App\Models\Property::latest()->take(5)->get() as $property)
+                    @foreach(\App\Models\Property::where('is_visible', 1)->latest()->take(5)->get() as $property)
                     <tr class="hover:bg-slate-50/80 transition-colors group">
                         <td class="px-8 py-4">
                             <div class="flex items-center gap-4">

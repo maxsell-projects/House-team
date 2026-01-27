@@ -17,6 +17,11 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
+        // 1. Definição padrão: Se não houver filtro de visibilidade na URL, assume 'active' (Ativos)
+        if (!$request->has('visibility')) {
+            $request->merge(['visibility' => 'active']);
+        }
+
         $query = Property::query();
 
         // Filtro por Negócio (Venda/Arrendamento)
@@ -24,17 +29,29 @@ class PropertyController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filtro por Visibilidade (Ativo/Inativo)
-        // Ajuste: Forçando 1 ou 0 para garantir compatibilidade com o MySQL tinyint
-        if ($request->filled('visibility')) {
+        // Filtro por Visibilidade (Ativo/Inativo/Todos)
+        if ($request->filled('visibility') && $request->visibility !== 'all') {
             $value = ($request->visibility === 'active') ? 1 : 0;
             $query->where('is_visible', $value);
+        }
+
+        // NOVO: Filtro por Consultor
+        if ($request->filled('consultant_id')) {
+            $query->where('consultant_id', $request->consultant_id);
+        }
+
+        // NOVO: Filtro por Referência (CRM Code)
+        if ($request->filled('crm_code')) {
+            $query->where('crm_code', 'like', '%' . $request->crm_code . '%');
         }
 
         // Mantém a ordenação definida no Model e persiste os filtros na paginação
         $properties = $query->ordered()->paginate(10)->withQueryString();
 
-        return view('admin.properties.index', compact('properties'));
+        // Precisamos dos consultores para o dropdown
+        $consultants = Consultant::orderBy('name')->get();
+
+        return view('admin.properties.index', compact('properties', 'consultants'));
     }
 
     public function create()
@@ -281,16 +298,16 @@ class PropertyController extends Controller
      * TOGGLE VISIBILITY: Inverte o status e retorna feedback com HTML
      */
     public function toggleVisibility(Property $property)
-{
-    $property->update([
-        'is_visible' => !$property->is_visible
-    ]);
+    {
+        $property->update([
+            'is_visible' => !$property->is_visible
+        ]);
 
-    $status = $property->is_visible ? 'Ativo' : 'Inativo';
-    
-    // Enviamos apenas o nome do status para a sessão
-    return back()->with('success_status', $status);
-}
+        $status = $property->is_visible ? 'Ativo' : 'Inativo';
+        
+        // Enviamos apenas o nome do status para a sessão
+        return back()->with('success_status', $status);
+    }
 
     /**
      * REORDER: Salva a ordem vinda do Drag & Drop (AJAX)

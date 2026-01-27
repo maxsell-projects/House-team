@@ -8,7 +8,7 @@
     {{-- 1. Carregar biblioteca de Drag & Drop --}}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-    {{-- Feedback de Sucesso Estilizado (Sem duplicidade) --}}
+    {{-- Feedback de Sucesso Estilizado --}}
     @if(session('success_status'))
         @php
             $isAtivo = session('success_status') === 'Ativo';
@@ -44,7 +44,9 @@
     {{-- FILTROS --}}
     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6">
         <form action="{{ route('admin.properties.index') }}" method="GET" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[200px]">
+            
+            {{-- Filtro Status --}}
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 ml-1">Negócio</label>
                 <select name="status" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ht-blue/20">
                     <option value="">Todos os tipos</option>
@@ -53,20 +55,38 @@
                 </select>
             </div>
 
-            <div class="flex-1 min-w-[200px]">
+            {{-- Filtro Visibilidade --}}
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 ml-1">Visibilidade</label>
                 <select name="visibility" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ht-blue/20">
-                    <option value="">Todos os status</option>
-                    <option value="active" {{ request('visibility') == 'active' ? 'selected' : '' }}>Ativos (No Site)</option>
+                    <option value="active" {{ request('visibility', 'active') == 'active' ? 'selected' : '' }}>Ativos (Padrão)</option>
                     <option value="inactive" {{ request('visibility') == 'inactive' ? 'selected' : '' }}>Inativos (Ocultos)</option>
+                    <option value="all" {{ request('visibility') == 'all' ? 'selected' : '' }}>Todos os status</option>
                 </select>
+            </div>
+
+            {{-- Filtro Consultor --}}
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 ml-1">Consultor</label>
+                <select name="consultant_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ht-blue/20">
+                    <option value="">Todos</option>
+                    @foreach($consultants as $c)
+                        <option value="{{ $c->id }}" {{ request('consultant_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Filtro Ref CRM --}}
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 ml-1">Ref. CRM</label>
+                <input type="text" name="crm_code" value="{{ request('crm_code') }}" placeholder="Ex: 12345" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ht-blue/20">
             </div>
 
             <div class="flex gap-2">
                 <button type="submit" class="bg-slate-800 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-ht-navy transition-all">
                     Filtrar
                 </button>
-                @if(request()->hasAny(['status', 'visibility']))
+                @if(request()->hasAny(['status', 'visibility', 'consultant_id', 'crm_code']))
                     <a href="{{ route('admin.properties.index') }}" class="bg-slate-100 text-slate-500 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all">
                         Limpar
                     </a>
@@ -83,6 +103,7 @@
                     <tr>
                         <th class="pl-4 py-4 w-10"></th> 
                         <th class="px-6 py-4">Imóvel</th>
+                        <th class="px-6 py-4">Ref. CRM</th> {{-- Coluna Adicionada --}}
                         <th class="px-6 py-4">Preço</th>
                         <th class="px-6 py-4">Localização</th>
                         <th class="px-6 py-4">Negócio</th>
@@ -120,6 +141,12 @@
                                 </div>
                             </div>
                         </td>
+
+                        {{-- Coluna Ref CRM --}}
+                        <td class="px-6 py-4 text-xs font-mono text-slate-500">
+                            {{ $property->crm_code ?? '-' }}
+                        </td>
+
                         <td class="px-6 py-4 text-sm font-bold text-ht-navy whitespace-nowrap">
                             € {{ number_format($property->price, 0, ',', '.') }}
                         </td>

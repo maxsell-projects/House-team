@@ -19,19 +19,21 @@ Route::domain('{domain}')
     ->group(function () {
         
         // 1.1 Home da Consultora (Landing Page)
-        // CORRIGIDO: ConsultantController
         Route::get('/', [ConsultantController::class, 'index'])->name('consultant.home');
         
-        // 1.2 Detalhe do Imóvel (Com design da consultora)
+        // 1.2 NOVA ROTA: Inventário Completo (Mascarado)
+        // Permite ver todos os imóveis dentro do site da consultora
+        Route::get('/imoveis', [ConsultantController::class, 'inventory'])->name('consultant.inventory');
+
+        // 1.3 Detalhe do Imóvel (Com design da consultora)
         Route::get('/imoveis/{property:slug}', [ConsultantController::class, 'showProperty'])->name('consultant.property.show');
 
-        // 1.3 FERRAMENTAS (Views personalizadas)
-        // CORRIGIDO: ConsultantController
+        // 1.4 FERRAMENTAS (Views personalizadas)
         Route::get('/ferramentas/mais-valias', [ConsultantController::class, 'showGains'])->name('consultant.tools.gains');
         Route::get('/ferramentas/simulador-credito', [ConsultantController::class, 'showCredit'])->name('consultant.tools.credit');
         Route::get('/ferramentas/imt', [ConsultantController::class, 'showImt'])->name('consultant.tools.imt');
 
-        // 1.4 AÇÕES (POST)
+        // 1.5 AÇÕES (POST)
         Route::post('/ferramentas/mais-valias/calcular', [ToolsController::class, 'calculateGains']);
         Route::post('/ferramentas/simulador-credito/enviar', [ToolsController::class, 'sendCreditSimulation']);
         Route::post('/ferramentas/imt/enviar', [ToolsController::class, 'sendImtSimulation']);
@@ -88,7 +90,6 @@ Route::get('/contato', function () { return view('contact'); })->name('contact')
 Route::post('/contato', [ToolsController::class, 'sendContact'])->name('contact.submit');
 
 // --- PREVIEW INTERNO (MODAL NO SITE PRINCIPAL) ---
-// CORRIGIDO: ConsultantController
 Route::get('/consultor/preview/{consultant}', [ConsultantController::class, 'preview'])->name('consultant.preview');
 
 // --- LEGAIS ---
@@ -109,21 +110,17 @@ Route::prefix('admin')->group(function () {
         Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
 
         Route::patch('/properties/{property}/toggle', [App\Http\Controllers\PropertyController::class, 'toggleVisibility'])
-    ->name('admin.properties.toggle');
+            ->name('admin.properties.toggle');
         
         Route::resource('properties', PropertyController::class)->names('admin.properties');
         
         // ========================================================
-        // CORREÇÃO: Rotas de Consultores para Admin
+        // Rotas de Consultores para Admin
         // ========================================================
         
-        // 1. Rota manual para a listagem (apontando para adminIndex)
-        // Isso resolve o erro "Route [admin.consultants.index] not defined"
         Route::get('consultants', [ConsultantController::class, 'adminIndex'])
             ->name('admin.consultants.index');
 
-        // 2. Resource padrão para o resto (Criar, Editar, Salvar, Excluir)
-        // O 'except' garante que ele não tente criar a rota 'index' duplicada ou errada
         Route::resource('consultants', ConsultantController::class)
             ->except(['index', 'show']) 
             ->names([
@@ -139,6 +136,3 @@ Route::prefix('admin')->group(function () {
         Route::post('/properties/{property}/move-to-top', [PropertyController::class, 'moveToTop'])->name('admin.properties.moveToTop');
     });
 });
-
-
-

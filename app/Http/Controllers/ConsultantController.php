@@ -45,6 +45,22 @@ class ConsultantController extends Controller
         return view('consultants.landing-page', compact('consultant', 'properties'));
     }
 
+    // NOVO MÉTODO: INVENTÁRIO "MASCARADO"
+    public function inventory($domain)
+    {
+        $consultant = $this->getConsultantByDomain($domain);
+
+        // Busca TODOS os imóveis visíveis da House Team (não apenas os dele)
+        // A paginação garante performance
+        $properties = Property::where('is_visible', true)
+            ->ordered()
+            ->paginate(12);
+
+        // Retorna a view de listagem padrão, mas injetando $consultant
+        // Isso ativa a "máscara" no layout (header/footer personalizados)
+        return view('properties.index', compact('properties', 'consultant'));
+    }
+
     public function showProperty($domain, $slug)
     {
         $consultant = $this->getConsultantByDomain($domain);
