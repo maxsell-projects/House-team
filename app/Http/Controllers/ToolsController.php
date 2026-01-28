@@ -14,6 +14,9 @@ use Illuminate\Support\Str;
 
 class ToolsController extends Controller
 {
+    // ID do Hugo Gaito no CRM (Fallback)
+    protected const DEFAULT_CRM_ID = 'vB0OLIFiB7Edovavz2A9';
+
     protected $calculator;
     protected $crmService;
 
@@ -101,13 +104,14 @@ class ToolsController extends Controller
                 $description .= "\nOrigem: Site " . $consultant->name;
             }
 
-            // CORREÇÃO: Enviando para 'seller' (Era 'listing')
+            // Enviando para 'seller'
             $this->sendToCrm([
                 'name'  => $validated['lead_name'],
                 'email' => $validated['lead_email'],
                 'tags'  => $tags,
                 'description' => $description,
-                'source' => 'Site House Team'
+                'source' => 'Site House Team',
+                'property_price' => $validated['sale_value'] // Valor do negócio = Valor de Venda
             ], 'seller', $consultant);
         }
 
@@ -121,10 +125,18 @@ class ToolsController extends Controller
     {
         $consultant = $this->getContext($domain);
 
+        // Validação
         $data = $request->validate([
-            'propertyValue' => 'required', 'loanAmount' => 'required', 'years' => 'required',
-            'tan' => 'required', 'monthlyPayment' => 'required', 'mtic' => 'required',
-            'lead_name' => 'required|string', 'lead_email' => 'required|email'
+            'propertyValue'  => 'required|numeric', 
+            'loanAmount'     => 'required|numeric', 
+            'years'          => 'required|integer',
+            'tan'            => 'required|numeric', 
+            'monthlyPayment' => 'required|numeric', 
+            'mtic'           => 'required|numeric',
+            'lead_name'      => 'required|string|max:255', 
+            'lead_email'     => 'required|email|max:255',
+            'lead_phone'     => 'required|string|max:20', 
+            'g-recaptcha-response' => 'required|captcha' // ATIVADO: Validação do Captcha
         ]);
 
         $viewData = ['title' => 'Relatório Crédito Habitação', 'data' => $data, 'date' => date('d/m/Y')];
@@ -142,7 +154,8 @@ class ToolsController extends Controller
             Log::error('Erro email simulação: ' . $e->getMessage());
         }
 
-        $description = "Simulação Crédito:\nImóvel: {$data['propertyValue']}€\nEmpréstimo: {$data['loanAmount']}€\nMensalidade: {$data['monthlyPayment']}€";
+        $description = "Simulação Crédito:\nImóvel: {$data['propertyValue']}€\nEmpréstimo: {$data['loanAmount']}€\nMensalidade: {$data['monthlyPayment']}€\nPrazo: {$data['years']} anos";
+        $description .= "\nTelefone: " . $data['lead_phone'];
 
         try {
             $fileName = 'credito_' . time() . '_' . Str::random(6) . '.pdf';
@@ -164,11 +177,13 @@ class ToolsController extends Controller
         }
 
         $this->sendToCrm([
-            'name'  => $data['lead_name'],
-            'email' => $data['lead_email'],
-            'tags'  => $tags,
-            'description' => $description,
-            'source' => 'Site House Team - Crédito'
+            'name'           => $data['lead_name'],
+            'email'          => $data['lead_email'],
+            'phone'          => $data['lead_phone'],
+            'tags'           => $tags,
+            'description'    => $description,
+            'source'         => 'Site House Team - Simulador Crédito', 
+            'property_price' => $data['propertyValue'] 
         ], 'credit', $consultant);
 
         return response()->json(['success' => true]);
@@ -202,7 +217,8 @@ class ToolsController extends Controller
             'email' => $data['lead_email'],
             'tags'  => $tags,
             'description' => $description,
-            'source' => 'Site House Team - IMT'
+            'source' => 'Site House Team - IMT',
+            'property_price' => $data['propertyValue']
         ], 'buyer', $consultant);
 
         return response()->json(['success' => true]);
@@ -236,6 +252,7 @@ class ToolsController extends Controller
             'is_owner'    => 'nullable|string',
             'estimated_value' => 'nullable|numeric',
             'property_code' => 'nullable|string',
+            'g-recaptcha-response' => 'required|captcha' // ATIVADO: Regra do Captcha
         ];
 
         // 2. Validação Estrita para Avaliação
@@ -349,11 +366,6 @@ class ToolsController extends Controller
                 $pipelineType = 'buyer';
             }
 
-            // 5. Atribuição de Owner (Se não houver consultor, atribui ao Hugo Gaito)
-            if (!$consultant) {
-                $consultant = Consultant::where('name', 'like', '%Hugo Gaito%')->first();
-            }
-
             // Envio CRM
             $this->sendToCrm([
                 'name'  => $data['name'],
@@ -361,7 +373,8 @@ class ToolsController extends Controller
                 'phone' => $data['phone'] ?? null,
                 'tags'  => $crmTags,
                 'description' => implode("\n", $descriptionParts),
-                'source' => 'Site House Team'
+                'source' => 'Site House Team',
+                'property_price' => $data['estimated_value'] ?? null // Passa o valor estimado se existir
             ], $pipelineType, $consultant);
 
             return back()->with('success', 'O seu pedido foi enviado com sucesso! Entraremos em contacto brevemente.');
@@ -397,10 +410,12 @@ class ToolsController extends Controller
 
             if ($contact && isset($contact['id'])) {
                 
-                // 2. ATRIBUIÇÃO AO CONSULTOR
-                if ($consultant && !empty($consultant->crm_user_id)) {
-                    $this->crmService->assignUser($contact['id'], $consultant->crm_user_id);
-                }
+                // 2. ATRIBUIÇÃO AO CONSULTOR (OU FALLBACK PARA HUGO)
+                $ownerId = ($consultant && !empty($consultant->crm_user_id))
+                    ? $consultant->crm_user_id
+                    : self::DEFAULT_CRM_ID;
+
+                $this->crmService->assignUser($contact['id'], $ownerId);
 
                 if (!empty($contactData['description'])) {
                     $this->crmService->addNote($contact['id'], $contactData['description']);

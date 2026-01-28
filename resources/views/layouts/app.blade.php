@@ -39,6 +39,9 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    {{-- GOOGLE RECAPTCHA SCRIPT (ADICIONADO) --}}
+    {!! NoCaptcha::renderJs() !!}
+
     <style>
         [x-cloak] { display: none !important; }
         
@@ -157,11 +160,11 @@
                                  class="h-14 w-auto brightness-0 invert object-contain" 
                                  onerror="this.style.display='none'">
                         </a>
-                     @else
+                      @else
                         <span class="text-white text-xs font-bold uppercase tracking-widest">
                             {{ __('menu.label_menu') }}
                         </span>
-                     @endif
+                      @endif
                  </div>
                  
                  <div class="flex items-center gap-3">

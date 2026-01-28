@@ -110,6 +110,13 @@
                     </div>
                 @endif
                 
+                {{-- ALERTA DE ERRO NO CAPTCHA --}}
+                @if($errors->has('g-recaptcha-response'))
+                    <div class="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold border border-red-200">
+                        ⚠️ Por favor, confirme que não é um robô.
+                    </div>
+                @endif
+
                 {{-- FORMULÁRIO --}}
                 <form action="{{ route('contact.submit') }}" method="POST" class="space-y-5">
                     @csrf
@@ -152,6 +159,11 @@
                     <div class="space-y-1">
                         <label class="text-xs font-bold uppercase tracking-wide text-ht-navy ml-1">{{ __('contact.form_message') }}</label>
                         <textarea name="message" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-ht-accent focus:ring-1 focus:ring-ht-accent transition-all resize-none" placeholder="{{ __('contact.placeholder_message') }}">{{ old('message') }}</textarea>
+                    </div>
+
+                    {{-- CAPTCHA --}}
+                    <div class="mt-4 flex flex-col items-center sm:items-start">
+                        {!! NoCaptcha::display() !!}
                     </div>
 
                     <button type="submit" class="w-full bg-ht-accent text-white font-black uppercase tracking-widest text-xs py-4 mt-2 rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 transform active:scale-95">

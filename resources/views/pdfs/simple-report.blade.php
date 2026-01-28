@@ -133,15 +133,32 @@
             <tbody>
                 @foreach($data as $key => $value)
                     {{-- Filtra campos internos que não devem aparecer no PDF --}}
-                    @if(!in_array($key, ['lead_name', 'lead_email', '_token', 'location', 'purpose']))
+                    @if(!in_array($key, ['lead_name', 'lead_email', 'lead_phone', '_token', 'location', 'purpose']))
                         <tr>
                             <td class="label">
-                                {{-- Formata a chave (ex: propertyValue -> Property Value) --}}
-                                {{ ucwords(str_replace(['_', 'fmt'], [' ', ''], preg_replace('/(?<!^)[A-Z]/', ' $0', $key))) }}
+                                @switch($key)
+                                    @case('propertyValue') Valor do Imóvel @break
+                                    @case('loanAmount') Valor do Empréstimo @break
+                                    @case('downPayment') Entrada Inicial @break
+                                    @case('years') Prazo @break
+                                    @case('tan') Taxa Anual (TAN) @break
+                                    @case('taeg') TAEG @break
+                                    @case('spread') Spread @break
+                                    @case('monthlyPayment') Prestação Mensal @break
+                                    @case('monthlyStampDuty') Imposto Selo (Mensal) @break
+                                    @case('openingStampDuty') Imposto Selo (Abertura) @break
+                                    @case('totalInterest') Total Juros @break
+                                    @case('upfrontTotal') Capital Inicial Total @break
+                                    @case('mtic') MTIC @break
+                                    @default {{ ucwords(str_replace(['_', 'fmt'], [' ', ''], preg_replace('/(?<!^)[A-Z]/', ' $0', $key))) }}
+                                @endswitch
                             </td>
-                            <td class="value {{ in_array($key, ['totalPayable', 'monthlyPayment', 'estimated_tax_fmt']) ? 'highlight' : '' }}">
-                                {{-- Se for numérico, formata como moeda, se não, imprime direto --}}
-                                @if(is_numeric($value))
+                            <td class="value {{ in_array($key, ['totalPayable', 'monthlyPayment', 'mtic']) ? 'highlight' : '' }}">
+                                @if($key === 'years')
+                                    {{ $value }} anos
+                                @elseif(in_array($key, ['tan', 'spread', 'taeg']))
+                                    {{ $value }} %
+                                @elseif(is_numeric($value))
                                     {{ number_format((float)$value, 2, ',', '.') }} €
                                 @else
                                     {{ $value }}

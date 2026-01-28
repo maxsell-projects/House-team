@@ -77,16 +77,18 @@
                                 € <span x-text="formatMoney(loanAmount)"></span>
                             </div>
                         </div>
-                        <div x-show="ltv > 90" class="text-ht-accent text-xs font-bold flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            {{ __('tools.credit.warning_ltv') }}
+                        
+                        {{-- MENSAGEM LTV > 90% (Garantia Estado) --}}
+                        <div x-show="ltv > 90" class="text-green-600 text-xs font-bold flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Financiamento a 100% possível mediante Garantia do Estado.
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.credit.label_term') }}</label>
                                 <select x-model.number="years" @change="calculate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary text-ht-navy">
-                                    @foreach(range(40, 5) as $y)
+                                    @foreach(range(50, 5) as $y)
                                         <option value="{{ $y }}">{{ $y }} {{ __('tools.credit.label_years') }} ({{ $y * 12 }} {{ __('tools.credit.label_months') }})</option>
                                     @endforeach
                                 </select>
@@ -171,7 +173,12 @@
                             € <span x-text="formatMoney(monthlyPayment)"></span>
                         </div>
 
-                        <div class="space-y-4 text-sm font-medium text-slate-300 border-t border-white/10 pt-6">
+                        {{-- DISCLAIMER PEQUENO --}}
+                        <p class="text-[10px] text-slate-400 mb-6 leading-tight border-b border-white/10 pb-6">
+                            A informação resultante destas simulações é meramente indicativa, tendo como finalidade orientar sobre o custo estimado, segundo os dados indicados pelo utilizador. Cada entidade financeira tem as suas próprias políticas e condições de financiamento, não ficando vinculadas aos resultados desta simulação.
+                        </p>
+
+                        <div class="space-y-4 text-sm font-medium text-slate-300 pt-2">
                             <div class="flex justify-between items-center">
                                 <span>{{ __('tools.credit.label_installment_breakdown') }}</span>
                                 <span class="text-white">€ <span x-text="formatMoney(monthlyPayment)"></span></span>
@@ -215,9 +222,8 @@
 
                     <div class="text-center">
                         <button @click="showLeadModal = true" class="block w-full bg-ht-accent text-white font-black uppercase tracking-widest py-5 rounded-3xl shadow-lg hover:bg-red-700 hover:shadow-xl transition-all transform hover:-translate-y-1 text-xs">
-                            {{ __('tools.credit.btn_report') }}
+                            FALE CONNOSCO
                         </button>
-                        <p class="text-[10px] text-slate-400 mt-3 font-medium">{{ __('tools.credit.disclaimer') }}</p>
                     </div>
                 </div>
             </div>
@@ -233,8 +239,18 @@
                     <h3 class="text-2xl font-black text-ht-navy mb-2 text-center">{{ __('tools.credit.modal_title') }}</h3>
                     <p class="text-sm text-slate-500 mb-6 text-center">{{ __('tools.credit.modal_subtitle') }}</p>
                     <div class="space-y-4">
-                        <input type="text" x-model="lead_name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary" placeholder="{{ __('tools.credit.input_name') }}">
-                        <input type="email" x-model="lead_email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary" placeholder="{{ __('tools.credit.input_email') }}">
+                        <input type="text" x-model="lead_name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary" placeholder="{{ __('tools.credit.input_name') }} *">
+                        <input type="email" x-model="lead_email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary" placeholder="{{ __('tools.credit.input_email') }} *">
+                        {{-- CAMPO TELEFONE --}}
+                        <input type="tel" x-model="lead_phone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-primary" placeholder="Telefone *">
+                        
+                        {{-- CONSENTIMENTO --}}
+                        <div class="flex items-start gap-3 mt-4 pt-2 border-t border-slate-100">
+                            <input type="checkbox" id="consent" x-model="consent" class="mt-1 w-4 h-4 text-ht-accent border-slate-300 rounded focus:ring-ht-accent">
+                            <label for="consent" class="text-[10px] text-slate-500 leading-tight">
+                                Pretendo ser contactado por um intermediário de crédito para obter informação sobre eventual financiamento.
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-slate-50 px-8 py-6 flex flex-col gap-3">
@@ -276,6 +292,8 @@
             loading: false,
             lead_name: '',
             lead_email: '',
+            lead_phone: '', // NOVO
+            consent: false, // NOVO
 
             formatMoney(value) { return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value); },
 
@@ -287,16 +305,16 @@
 
             checkMaxTerm() {
                 if (!this.age) { this.ageWarning = ''; return; }
-                const maxAge = 75;
-                const projectedAge = this.age + this.years;
-                let maxTermAllowed = 40;
-                if (this.age > 30 && this.age <= 35) maxTermAllowed = 37;
-                if (this.age > 35) maxTermAllowed = 35;
-                if (this.years > maxTermAllowed) {
-                    this.ageWarning = `{{ __('tools.credit.warning_age_limit_1') }} ${this.age} {{ __('tools.credit.warning_age_limit_2') }} ${maxTermAllowed} {{ __('tools.credit.label_years') }}.`;
-                } else if (projectedAge > maxAge) {
-                    this.ageWarning = `{{ __('tools.credit.warning_age_max_1') }} ${maxAge - this.age} {{ __('tools.credit.label_years') }}.`;
-                } else { this.ageWarning = ''; }
+                
+                // Regra: Máximo 75 anos no fim do contrato
+                const maxAgeAtEnd = 75;
+                const maxAllowedYears = maxAgeAtEnd - this.age;
+                
+                if (this.years > maxAllowedYears) {
+                    this.ageWarning = `Com a sua idade (${this.age} anos), o prazo máximo recomendado para terminar aos ${maxAgeAtEnd} anos é de ${maxAllowedYears} anos.`;
+                } else {
+                    this.ageWarning = ''; 
+                }
             },
 
             calculate() {
@@ -318,11 +336,20 @@
             },
 
             async submitLead() {
-                if(!this.lead_name || !this.lead_email) { alert('{{ __('tools.credit.alert_fill') }}'); return; }
+                // Validação Completa
+                if(!this.lead_name || !this.lead_email || !this.lead_phone) { 
+                    alert('Por favor preencha todos os campos obrigatórios: Nome, Email e Telefone.'); 
+                    return; 
+                }
+                
+                if(!this.consent) {
+                    alert('É necessário aceitar o contacto por um intermediário de crédito.');
+                    return;
+                }
+
                 this.loading = true;
                 
                 try {
-                    // CORREÇÃO: URL relativa para evitar CORS
                     const response = await fetch('{{ url("/ferramentas/simulador-credito/enviar") }}', {
                         method: 'POST',
                         headers: { 
@@ -338,7 +365,8 @@
                             monthlyPayment: this.monthlyPayment, 
                             mtic: this.mtic, 
                             lead_name: this.lead_name, 
-                            lead_email: this.lead_email 
+                            lead_email: this.lead_email,
+                            lead_phone: this.lead_phone // NOVO
                         })
                     });
                     if (!response.ok) throw new Error('Falha no envio');
@@ -346,6 +374,8 @@
                     this.showLeadModal = false;
                     this.lead_name = '';
                     this.lead_email = '';
+                    this.lead_phone = '';
+                    this.consent = false;
                 } catch(e) {
                     console.error(e);
                     alert('{{ __('tools.credit.alert_error') }}');
