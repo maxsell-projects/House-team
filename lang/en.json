@@ -138,7 +138,7 @@
     "contact.form_message": "Message",
     "contact.placeholder_message": "How can we help?",
     "contact.btn_send": "Send Message",
-     
+      
     "about.hero_badge": "Our Strength",
     "about.hero_title_prefix": "Meet the",
     "about.hero_title_suffix": "Team",
@@ -263,6 +263,7 @@
     "tools.gains.alert_fill_values": "Please fill in at least the acquisition and sale values.",
     "tools.gains.alert_fill_contact": "Please fill in your name and email to continue.",
     "tools.gains.alert_error_check": "Check if you filled in all required fields correctly.",
+    
     "portfolio.hero_badge": "Our Portfolio",
     "portfolio.hero_title": "Find Your Home",
     "portfolio.hero_desc": "Explore our exclusive selection of properties.",
@@ -310,6 +311,7 @@
     "portfolio.label_area": "Area",
     "portfolio.label_garage": "Parking",
     "portfolio.label_bathrooms": "Bathrooms",
+    "portfolio.zoom_image": "Expand Photo",
 
     "tools.imt.title": "IMT and Stamp Duty Simulator 2025",
     "tools.imt.subtitle": "Calculate your property acquisition taxes.",
@@ -497,20 +499,19 @@
     "property_type.semi-detached-house": "Semi-Detached",
     "property_type.studio": "Studio",
     "property_type.farm": "Farm",
+    "property_type.commercial": "Commercial",
+
+    "property_type.apartamento": "Apartment",
+    "property_type.moradia": "Villa",
+    "property_type.casa": "Villa",
+    "property_type.terreno": "Land",
+    "property_type.comercial": "Commercial",
 
     "property_status.available": "Available",
     "property_status.sold": "Sold",
     "property_status.reserved": "Reserved",
     "property_status.active": "Active",
-    "portfolio.zoom_image": "Expand Photo",
-
-    "property_type.commercial": "Commercial",
     "property_status.venda": "For Sale",
-    "property_status.arrendamento": "For Rent",
-    "portfolio.zoom_image": "Expand Photo", 
-
-    "property_type.apartamento": "Apartment",
-    "property_type.casa": "Villa",
     "property_status.arrendamento": "For Rent",
 
     "consultant_lp.hero_subtitle": "Real Estate Consultant",
@@ -532,7 +533,7 @@
     "consultant_lp.contact_title": "Start Your Story",
     "consultant_lp.contact_subtitle": "Schedule a strategic meeting.",
     "consultant_lp.footer_note": "House Team Associate",
-
+    
     "consultant_lp.menu_home": "Home",
     "consultant_lp.menu_about": "About",
     "consultant_lp.menu_feedback": "Reviews",
@@ -545,8 +546,4 @@
     "consultant_lp.about_card_2_text": "Over these years, I have helped fulfill more than 500 dreams, guiding both owners and buyers. My approach is always based on impartiality and trust, clearly demonstrating and justifying the advantages and disadvantages of every business option.",
     "consultant_lp.about_card_3_title": "Solution Focused",
     "consultant_lp.about_card_3_text": "Over 10 years of experience allow me to apply the serenity and insight I've gained for my clients' benefit. I am deeply empathetic, focused on finding solutions, unusually persistent, and unafraid of overcoming obstacles."
-
-    
-  
 }
-
