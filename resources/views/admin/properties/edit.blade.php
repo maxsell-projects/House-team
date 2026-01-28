@@ -37,7 +37,7 @@
             
             <nav class="flex-1 p-4 space-y-2 mt-6">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/10 hover:text-white rounded-xl text-sm font-bold transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     Visão Geral
                 </a>
                 <a href="{{ route('admin.properties.index') }}" class="flex items-center gap-3 px-4 py-3 bg-ht-blue text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 transition-all">
@@ -113,7 +113,7 @@
                                             })->toJson() }}
                                          }" 
                                          class="relative">
-                                        
+                                    
                                         <input type="hidden" name="consultant_id" :value="selectedId">
 
                                         <button type="button" 
@@ -142,6 +142,10 @@
                                                     <span class="text-sm font-medium text-ht-navy" x-text="option.name"></span>
                                                 </div>
                                             </template>
+                                            
+                                            <div x-show="options.filter(i => i.name.toLowerCase().includes(search.toLowerCase())).length === 0" class="p-3 text-xs text-slate-400 text-center">
+                                                Nenhum consultor encontrado.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -212,6 +216,8 @@
                                     <option value="C" {{ old('energy_rating', $property->energy_rating) == 'C' ? 'selected' : '' }}>C</option>
                                     <option value="D" {{ old('energy_rating', $property->energy_rating) == 'D' ? 'selected' : '' }}>D</option>
                                     <option value="E" {{ old('energy_rating', $property->energy_rating) == 'E' ? 'selected' : '' }}>E</option>
+                                    <option value="F" {{ old('energy_rating', $property->energy_rating) == 'F' ? 'selected' : '' }}>F</option>
+                                    <option value="NC" {{ old('energy_rating', $property->energy_rating) == 'NC' ? 'selected' : '' }}>NC</option>
                                 </select>
                             </div>
                         </div>

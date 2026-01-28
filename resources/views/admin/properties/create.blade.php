@@ -232,6 +232,7 @@
                                         <option value="D" {{ old('energy_rating') == 'D' ? 'selected' : '' }}>D</option>
                                         <option value="E" {{ old('energy_rating') == 'E' ? 'selected' : '' }}>E</option>
                                         <option value="F" {{ old('energy_rating') == 'F' ? 'selected' : '' }}>F</option>
+                                        <option value="NC" {{ old('energy_rating') == 'NC' ? 'selected' : '' }}>NC</option>
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
