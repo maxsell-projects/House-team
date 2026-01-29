@@ -547,5 +547,9 @@
   "consultant_lp.about_card_2_title": "500+ Sonhos Realizados",
   "consultant_lp.about_card_2_text": "Nestes anos ajudei à realização de mais de 500 sonhos, acompanhando proprietários e compradores. A minha postura é sempre a da isenção e confiança, demonstrando e justificando as vantagens e desvantagens de todas as opções de negócio.",
   "consultant_lp.about_card_3_title": "Foco na Solução",
-  "consultant_lp.about_card_3_text": "A experiência de mais de 10 anos permite-me usar a serenidade e ponderação conquistadas para benefício dos clientes. Sou uma pessoa capaz de compreender, focada em encontrar soluções, invulgarmente persistente e que não receia obstáculos."
+  "consultant_lp.about_card_3_text": "A experiência de mais de 10 anos permite-me usar a serenidade e ponderação conquistadas para benefício dos clientes. Sou uma pessoa capaz de compreender, focada em encontrar soluções, invulgarmente persistente e que não receia obstáculos.",
+
+  "property_type.predio": "Prédio",
+"property_type.armazem": "Armazém",
+"property_type.commercial": "Comercial / Armazém"
 }

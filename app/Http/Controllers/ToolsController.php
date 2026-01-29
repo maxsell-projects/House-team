@@ -14,8 +14,11 @@ use Illuminate\Support\Str;
 
 class ToolsController extends Controller
 {
-    // ID do Hugo Gaito no CRM (Fallback)
+    // ID do Hugo Gaito no CRM (Fallback Geral)
     protected const DEFAULT_CRM_ID = 'vB0OLIFiB7Edovavz2A9';
+
+    // ID da Margarida (Fallback Específico)
+    protected const MARGARIDA_CRM_ID = '9RqDPhXN28GpNeSN3kWW';
 
     protected $calculator;
     protected $crmService;
@@ -26,17 +29,10 @@ class ToolsController extends Controller
         $this->crmService = $crmService;
     }
 
-    /**
-     * Helper para identificar o contexto (Site Principal vs Consultor)
-     * Recupera o consultor baseando-se no domínio da rota.
-     */
     private function getContext($domain)
     {
         if (!$domain) return null;
-
-        // Limpa www. e busca
         $cleanDomain = preg_replace('/^www\./', '', $domain);
-        
         return Consultant::where('domain', $cleanDomain)
             ->orWhere('lp_slug', $cleanDomain)
             ->first();
@@ -47,20 +43,68 @@ class ToolsController extends Controller
     public function showCreditSimulator() { return view('tools.credit'); }
     public function showImtSimulator() { return view('tools.imt'); }
 
+    // =========================================================================
+    // MAIS-VALIAS: CÁLCULO PRÉVIO (AJAX) - APENAS MOSTRA RESULTADO
+    // =========================================================================
+    public function calculateGainsOnly(Request $request)
+    {
+        // Validação leve apenas para cálculo
+        $validated = $request->validate([
+            'acquisition_value' => 'required|numeric|min:0',
+            'acquisition_year' => 'required|integer|min:1900|max:2026',
+            'acquisition_month' => 'required|string',
+            'sale_value' => 'required|numeric|min:0',
+            'sale_year' => 'required|integer|min:1900|max:2026',
+            'sale_month' => 'required|string',
+            'has_expenses' => 'required|string|in:Sim,Não',
+            'expenses_works' => 'nullable|numeric|min:0',
+            'expenses_imt' => 'nullable|numeric|min:0',
+            'expenses_commission' => 'nullable|numeric|min:0',
+            'expenses_other' => 'nullable|numeric|min:0',
+            'sold_to_state' => 'required|string|in:Sim,Não',
+            'hpp_status' => 'nullable|string',
+            'retired_status' => 'nullable|string',
+            'self_built' => 'nullable|string',
+            'reinvest_intention' => 'nullable|string',
+            'reinvestment_amount' => 'nullable|numeric|min:0',
+            'amortize_credit' => 'nullable|string',
+            'amortization_amount' => 'nullable|numeric|min:0',
+            'joint_tax_return' => 'nullable|string',
+            'annual_income' => 'nullable|numeric|min:0',
+            'public_support' => 'nullable|string',
+            'public_support_year' => 'nullable|integer',
+            'public_support_month' => 'nullable|string',
+        ]);
+
+        $totalExpenses = 0.0;
+        if ($validated['has_expenses'] === 'Sim') {
+            $totalExpenses = (float) ($validated['expenses_works'] ?? 0) + 
+                             (float) ($validated['expenses_imt'] ?? 0) + 
+                             (float) ($validated['expenses_commission'] ?? 0) + 
+                             (float) ($validated['expenses_other'] ?? 0);
+        }
+        $validated['expenses_total'] = $totalExpenses;
+
+        // Calcula sem enviar lead
+        $results = $this->calculator->calculate($validated);
+        
+        return response()->json($results);
+    }
 
     // =========================================================================
-    // MAIS-VALIAS (POST) -> VAI PARA FUNIL DE VENDEDORES (SELLER)
+    // MAIS-VALIAS: ENVIO FINAL (POST) -> CRM + PDF
     // =========================================================================
     public function calculateGains(Request $request, $domain = null)
     {
         $consultant = $this->getContext($domain);
 
+        // Validação completa com dados de contato
         $validated = $request->validate([
             'acquisition_value' => 'required|numeric|min:0',
-            'acquisition_year' => 'required|integer|min:1900|max:2025',
+            'acquisition_year' => 'required|integer|min:1900|max:2026',
             'acquisition_month' => 'required|string',
             'sale_value' => 'required|numeric|min:0',
-            'sale_year' => 'required|integer|min:1900|max:2025',
+            'sale_year' => 'required|integer|min:1900|max:2026',
             'sale_month' => 'required|string',
             'has_expenses' => 'required|string|in:Sim,Não',
             'expenses_works' => 'nullable|numeric|min:0',
@@ -80,52 +124,76 @@ class ToolsController extends Controller
             'public_support' => 'required_unless:sold_to_state,Sim|nullable|string|in:Sim,Não',
             'public_support_year' => 'nullable|integer',
             'public_support_month' => 'nullable|string',
+            
+            // Dados Lead
             'lead_name' => 'required|string|max:255',
-            'lead_email' => 'required|email|max:255'
+            'lead_email' => 'required|email|max:255',
+            'lead_phone' => 'required|string|max:20' // Novo campo
         ]);
 
         $totalExpenses = 0.0;
         if ($validated['has_expenses'] === 'Sim') {
-            $totalExpenses = (float) ($validated['expenses_works'] ?? 0) + (float) ($validated['expenses_imt'] ?? 0) + (float) ($validated['expenses_commission'] ?? 0) + (float) ($validated['expenses_other'] ?? 0);
+            $totalExpenses = (float) ($validated['expenses_works'] ?? 0) + 
+                             (float) ($validated['expenses_imt'] ?? 0) + 
+                             (float) ($validated['expenses_commission'] ?? 0) + 
+                             (float) ($validated['expenses_other'] ?? 0);
         }
         $validated['expenses_total'] = $totalExpenses;
 
         $results = $this->calculator->calculate($validated);
 
         if ($request->filled('lead_email')) {
-            // Envia PDF para o cliente
-            $this->sendEmailWithPdf($validated['lead_email'], $validated['lead_name'], 'Simulação de Mais-Valias', 'pdfs.simulation', ['data' => $validated, 'results' => $results]);
+            $this->sendEmailWithPdf(
+                $validated['lead_email'], 
+                $validated['lead_name'], 
+                'Simulação de Mais-Valias', 
+                'pdfs.simulation', 
+                ['data' => $validated, 'results' => $results]
+            );
 
-            $description = "Simulação Mais-Valias:\nCompra: {$validated['acquisition_value']}€ ({$validated['acquisition_year']})\nVenda: {$validated['sale_value']}€";
+            // Montagem rica de dados para o CRM
+            $description = "Simulação Mais-Valias Detalhada:\n";
+            $description .= "--------------------------------\n";
+            $description .= "Compra: " . number_format($validated['acquisition_value'], 2, ',', '.') . "€ (" . $validated['acquisition_year'] . ")\n";
+            $description .= "Venda: " . number_format($validated['sale_value'], 2, ',', '.') . "€ (" . $validated['sale_year'] . ")\n";
+            $description .= "Despesas Totais: " . number_format($totalExpenses, 2, ',', '.') . "€\n";
             
+            if ($validated['sold_to_state'] === 'Sim') $description .= "- Venda ao Estado: SIM (Isento)\n";
+            if ($validated['reinvest_intention'] === 'Sim') $description .= "- Reinvestimento: " . number_format($validated['reinvestment_amount'], 2, ',', '.') . "€\n";
+            if ($validated['amortize_credit'] === 'Sim') $description .= "- Amortização Crédito: " . number_format($validated['amortization_amount'], 2, ',', '.') . "€\n";
+            
+            $description .= "\nRESULTADO:\n";
+            $description .= "Mais-Valia Bruta: " . number_format($results['gross_gain'], 2, ',', '.') . "€\n";
+            $description .= "Imposto Estimado: " . number_format($results['tax_payable'], 2, ',', '.') . "€\n";
+            $description .= "Telefone: " . $validated['lead_phone'];
+
             $tags = ['Simulador Mais-Valias', 'Lead Site'];
             if ($consultant) {
                 $tags[] = 'Consultor: ' . $consultant->name;
-                $description .= "\nOrigem: Site " . $consultant->name;
+                $description .= "\n\nOrigem: Site " . $consultant->name;
             }
 
-            // Enviando para 'seller'
             $this->sendToCrm([
                 'name'  => $validated['lead_name'],
                 'email' => $validated['lead_email'],
+                'phone' => $validated['lead_phone'],
                 'tags'  => $tags,
                 'description' => $description,
-                'source' => 'Site House Team',
-                'property_price' => $validated['sale_value'] // Valor do negócio = Valor de Venda
+                'source' => 'Site House Team - Mais Valias',
+                'property_price' => $validated['sale_value']
             ], 'seller', $consultant);
         }
 
-        return response()->json($results);
+        return response()->json(['success' => true, 'results' => $results]);
     }
 
     // =========================================================================
-    // CRÉDITO (POST) -> VAI PARA FUNIL DE CRÉDITO
+    // CRÉDITO (POST) -> FUNIL CRÉDITO
     // =========================================================================
     public function sendCreditSimulation(Request $request, $domain = null)
     {
         $consultant = $this->getContext($domain);
 
-        // Validação
         $data = $request->validate([
             'propertyValue'  => 'required|numeric', 
             'loanAmount'     => 'required|numeric', 
@@ -135,40 +203,28 @@ class ToolsController extends Controller
             'mtic'           => 'required|numeric',
             'lead_name'      => 'required|string|max:255', 
             'lead_email'     => 'required|email|max:255',
-            'lead_phone'     => 'required|string|max:20', 
-            'g-recaptcha-response' => 'required|captcha' // ATIVADO: Validação do Captcha
+            'lead_phone'     => 'required|string|max:20'
         ]);
 
         $viewData = ['title' => 'Relatório Crédito Habitação', 'data' => $data, 'date' => date('d/m/Y')];
-        $pdf = Pdf::loadView('pdfs.simple-report', $viewData);
-        $pdfContent = $pdf->output();
+        $pdfContent = Pdf::loadView('pdfs.simple-report', $viewData)->output();
 
         try {
             Mail::send('emails.simulation-lead', ['name' => $data['lead_name'], 'simulationType' => 'Simulação Crédito Habitação'], function ($message) use ($data, $pdfContent) {
-                $message->from('clientes@houseteamconsultores.pt', 'House Team')
+                $message->from(config('mail.from.address'), config('mail.from.name'))
                     ->to($data['lead_email'])
                     ->subject('Simulação Crédito Habitação - Resultado Detalhado')
                     ->attachData($pdfContent, 'simulacao.pdf');
             });
         } catch (\Exception $e) {
-            Log::error('Erro email simulação: ' . $e->getMessage());
+            Log::error('Erro email simulação crédito: ' . $e->getMessage());
         }
 
         $description = "Simulação Crédito:\nImóvel: {$data['propertyValue']}€\nEmpréstimo: {$data['loanAmount']}€\nMensalidade: {$data['monthlyPayment']}€\nPrazo: {$data['years']} anos";
         $description .= "\nTelefone: " . $data['lead_phone'];
 
-        try {
-            $fileName = 'credito_' . time() . '_' . Str::random(6) . '.pdf';
-            $filePath = 'simulations/' . $fileName;
-            if (!Storage::disk('public')->exists('simulations')) {
-                Storage::disk('public')->makeDirectory('simulations');
-            }
-            Storage::disk('public')->put($filePath, $pdfContent);
-            $pdfUrl = asset('storage/' . $filePath);
-            $description .= "\n\n📥 PDF RELATÓRIO: " . $pdfUrl;
-        } catch (\Exception $e) {
-            Log::error('Erro ao salvar PDF: ' . $e->getMessage());
-        }
+        $pdfLink = $this->savePdfToStorage($pdfContent, 'credito');
+        if($pdfLink) $description .= "\n\n📥 PDF: " . $pdfLink;
 
         $tags = ['Simulador Crédito', 'Lead Site'];
         if ($consultant) {
@@ -177,12 +233,12 @@ class ToolsController extends Controller
         }
 
         $this->sendToCrm([
-            'name'           => $data['lead_name'],
-            'email'          => $data['lead_email'],
-            'phone'          => $data['lead_phone'],
-            'tags'           => $tags,
-            'description'    => $description,
-            'source'         => 'Site House Team - Simulador Crédito', 
+            'name'  => $data['lead_name'],
+            'email' => $data['lead_email'],
+            'phone' => $data['lead_phone'],
+            'tags'  => $tags,
+            'description' => $description,
+            'source' => 'Site House Team - Simulador Crédito', 
             'property_price' => $data['propertyValue'] 
         ], 'credit', $consultant);
 
@@ -190,21 +246,29 @@ class ToolsController extends Controller
     }
 
     // =========================================================================
-    // IMT (POST) -> VAI PARA FUNIL DE COMPRADORES (BUYER)
+    // IMT (POST) -> FUNIL COMPRADORES
     // =========================================================================
     public function sendImtSimulation(Request $request, $domain = null)
     {
         $consultant = $this->getContext($domain);
 
         $data = $request->validate([
-            'propertyValue' => 'required', 'location' => 'required', 'purpose' => 'required',
-            'finalIMT' => 'required', 'finalStamp' => 'required', 'totalPayable' => 'required',
-            'lead_name' => 'required|string', 'lead_email' => 'required|email'
+            'propertyValue' => 'required', 
+            'location' => 'required', 
+            'purpose' => 'required',
+            'finalIMT' => 'required', 
+            'finalStamp' => 'required', 
+            'totalPayable' => 'required',
+            'lead_name' => 'required|string', 
+            'lead_email' => 'required|email',
+            'lead_phone' => 'required|string|max:20' // Novo campo
         ]);
 
         $this->sendEmailWithPdf($data['lead_email'], $data['lead_name'], 'Simulação IMT e Selo', 'pdfs.simple-report', ['title' => 'Relatório IMT e Imposto de Selo', 'data' => $data]);
 
-        $description = "Simulação IMT:\nValor: {$data['propertyValue']}€\nLocal: {$data['location']}\nTotal Impostos: {$data['totalPayable']}€";
+        $description = "Simulação IMT:\nValor: {$data['propertyValue']}€\nLocal: {$data['location']}\nFinalidade: {$data['purpose']}\n";
+        $description .= "IMT: {$data['finalIMT']}€ | Selo: {$data['finalStamp']}€\nTotal Impostos: {$data['totalPayable']}€";
+        $description .= "\nTelefone: " . $data['lead_phone'];
 
         $tags = ['Simulador IMT', 'Lead Site'];
         if ($consultant) {
@@ -215,57 +279,55 @@ class ToolsController extends Controller
         $this->sendToCrm([
             'name'  => $data['lead_name'],
             'email' => $data['lead_email'],
+            'phone' => $data['lead_phone'],
             'tags'  => $tags,
             'description' => $description,
             'source' => 'Site House Team - IMT',
-            'property_price' => $data['propertyValue']
+            'property_price' => (float) str_replace(['.', ','], ['', '.'], $data['propertyValue'])
         ], 'buyer', $consultant);
 
         return response()->json(['success' => true]);
     }
 
     // =========================================================================
-    // CONTATO (POST) -> LÓGICA INTELIGENTE DE PIPELINE
+    // CONTATO GERAL
     // =========================================================================
     public function sendContact(Request $request, $domain = null)
     {
         $consultant = $this->getContext($domain);
 
-        // 1. Definição Base de Regras
         $rules = [
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|max:255',
-            'phone'       => 'nullable|string|max:20',
-            'subject'     => 'nullable|string|max:255',
-            'message'     => 'nullable|string', 
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'subject' => 'nullable|string|max:255',
+            'message' => 'nullable|string', 
             'property_type' => 'nullable|string',
-            'year'        => 'nullable|integer',
-            'area'        => 'nullable|numeric',
-            'bedrooms'    => 'nullable|integer',
-            'bathrooms'   => 'nullable|integer',
-            'garages'     => 'nullable|integer',
+            'year' => 'nullable|integer',
+            'area' => 'nullable|numeric',
+            'bedrooms' => 'nullable|integer',
+            'bathrooms' => 'nullable|integer',
+            'garages' => 'nullable|integer',
             'parking_type' => 'nullable|string',
-            'features'    => 'nullable|array',
+            'features' => 'nullable|array',
             'features_text' => 'nullable|string', 
-            'condition'   => 'nullable|string',
-            'address'     => 'nullable|string',
-            'is_owner'    => 'nullable|string',
+            'condition' => 'nullable|string',
+            'address' => 'nullable|string',
+            'is_owner' => 'nullable|string',
             'estimated_value' => 'nullable|numeric',
             'property_code' => 'nullable|string',
-            'g-recaptcha-response' => 'required|captcha' // ATIVADO: Regra do Captcha
         ];
 
-        // 2. Validação Estrita para Avaliação
-        $isValuation = ($request->input('subject') === 'Avaliação Detalhada de Imóvel');
+        $isValuation = ($request->input('subject') === 'avaliacao');
         
         if ($isValuation) {
-            $rules['phone']        = 'required|string|max:20';
-            $rules['year']         = 'required|integer';
-            $rules['area']         = 'required|numeric';
-            $rules['bedrooms']     = 'required|integer';
-            $rules['bathrooms']    = 'required|integer';
+            $rules['phone'] = 'required|string|max:20';
+            $rules['year'] = 'required|integer';
+            $rules['area'] = 'required|numeric';
+            $rules['bedrooms'] = 'required|integer';
+            $rules['bathrooms'] = 'required|integer';
             $rules['parking_type'] = 'required|string';
-            $rules['condition']    = 'required|string';
+            $rules['condition'] = 'required|string';
         }
 
         $data = $request->validate($rules);
@@ -273,13 +335,11 @@ class ToolsController extends Controller
         if (empty($data['subject'])) $data['subject'] = 'Novo Contacto Geral';
 
         try {
-            // Envio de Email
             $primaryEmail = $consultant ? $consultant->email : 'admin@houseteam.pt';
             $adminEmail = 'admin@houseteam.pt';
 
             Mail::send('emails.contact-lead', ['data' => $data], function ($message) use ($primaryEmail, $adminEmail, $data, $consultant) {
-                $message->from('clientes@houseteamconsultores.pt', 'House Team');
-                
+                $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->to($primaryEmail);
                 if ($consultant) {
                     $message->bcc($adminEmail);
@@ -289,55 +349,23 @@ class ToolsController extends Controller
                 }
             });
 
-            // 3. Preparação para CRM (Tags, Descrição)
             $crmTags = ['Lead Site'];
-            if ($consultant) {
-                $crmTags[] = 'Consultor: ' . $consultant->name;
-            }
+            if ($consultant) $crmTags[] = 'Consultor: ' . $consultant->name;
 
-            // Constrói Descrição Rica
             $descriptionParts = [];
-            
             if (!empty($data['phone'])) $descriptionParts[] = "📞 Telefone: " . $data['phone'];
             if (!empty($data['is_owner'])) {
                 $descriptionParts[] = "👤 Proprietário? " . $data['is_owner'];
-                if ($data['is_owner'] === 'Sim' || $isValuation) {
-                    $crmTags[] = 'Vendedor';
-                }
+                if ($data['is_owner'] === 'Sim' || $isValuation) $crmTags[] = 'Vendedor';
             }
 
-            // Detalhes do Imóvel
             if ($isValuation || !empty($data['year'])) {
                 $descriptionParts[] = "\n🏡 DETALHES DO IMÓVEL:";
                 $descriptionParts[] = "Tipo: " . ($data['property_type'] ?? 'N/A');
                 $descriptionParts[] = "Ano: " . ($data['year'] ?? '-');
                 $descriptionParts[] = "Área: " . ($data['area'] ?? '-') . " m²";
-                $descriptionParts[] = "Tipologia: T" . ($data['bedrooms'] ?? 0) . " (" . ($data['bathrooms'] ?? 0) . " WC)";
-                
-                if (!empty($data['parking_type'])) {
-                    $places = $data['garages'] ?? 0;
-                    $descriptionParts[] = "Estacionamento: " . $data['parking_type'] . " (" . $places . " lugares)";
-                }
-
-                if (!empty($data['condition'])) {
-                    $descriptionParts[] = "Estado: " . $data['condition'];
-                }
-
-                if (!empty($data['features'])) {
-                    $descriptionParts[] = "Características: " . implode(', ', $data['features']);
-                }
-                
-                if (!empty($data['features_text'])) {
-                    $descriptionParts[] = "Notas/Obs: " . $data['features_text'];
-                }
-                
-                if (!empty($data['address'])) {
-                    $descriptionParts[] = "📍 Morada: " . $data['address'];
-                }
-                
-                if (!empty($data['estimated_value'])) {
-                    $descriptionParts[] = "💰 Valor Estimado: " . $data['estimated_value'] . "€";
-                }
+                $descriptionParts[] = "T" . ($data['bedrooms'] ?? 0);
+                if (!empty($data['estimated_value'])) $descriptionParts[] = "💰 Valor Estimado: " . $data['estimated_value'] . "€";
             }
 
             if (!empty($data['message'])) $descriptionParts[] = "\n💬 Mensagem:\n" . $data['message'];
@@ -346,27 +374,14 @@ class ToolsController extends Controller
                 $descriptionParts[] = "Ref. Imóvel: " . $data['property_code'];
             }
 
-            // 4. Definição INTELIGENTE do Funil (Pipeline)
             $subjectLower = mb_strtolower($data['subject']);
-            
-            // Lógica Padrão: Começa como 'lead' (Compradores)
             $pipelineType = 'lead';
 
-            if ($isValuation || str_contains($subjectLower, 'avalia')) {
-                // Avaliação -> Vai para Sellers (com título específico)
-                $pipelineType = 'valuation';
-            } elseif (str_contains($subjectLower, 'vender') || str_contains($subjectLower, 'proprietário') || str_contains($subjectLower, 'venda')) {
-                // Vender -> Vai para Sellers
-                $pipelineType = 'seller';
-            } elseif (str_contains($subjectLower, 'recrutamento') || str_contains($subjectLower, 'carreira') || str_contains($subjectLower, 'candidatura')) {
-                // Recrutamento -> Vai para Recrutamento
-                $pipelineType = 'recruitment';
-            } elseif (str_contains($subjectLower, 'comprar') || str_contains($subjectLower, 'compra') || str_contains($subjectLower, 'visita')) {
-                // Comprar -> Vai para Compradores
-                $pipelineType = 'buyer';
-            }
+            if ($isValuation || str_contains($subjectLower, 'avalia')) $pipelineType = 'valuation';
+            elseif (str_contains($subjectLower, 'vender')) $pipelineType = 'seller';
+            elseif (str_contains($subjectLower, 'recrutamento')) $pipelineType = 'recruitment';
+            elseif (str_contains($subjectLower, 'comprar')) $pipelineType = 'buyer';
 
-            // Envio CRM
             $this->sendToCrm([
                 'name'  => $data['name'],
                 'email' => $data['email'],
@@ -374,14 +389,14 @@ class ToolsController extends Controller
                 'tags'  => $crmTags,
                 'description' => implode("\n", $descriptionParts),
                 'source' => 'Site House Team',
-                'property_price' => $data['estimated_value'] ?? null // Passa o valor estimado se existir
+                'property_price' => $data['estimated_value'] ?? null
             ], $pipelineType, $consultant);
 
-            return back()->with('success', 'O seu pedido foi enviado com sucesso! Entraremos em contacto brevemente.');
+            return back()->with('success', 'Mensagem enviada com sucesso!');
 
         } catch (\Exception $e) {
-            Log::error('Erro ao enviar contacto: ' . $e->getMessage());
-            return back()->with('error', 'Ocorreu um erro ao enviar a mensagem. Por favor tente novamente.');
+            Log::error('Erro Contacto: ' . $e->getMessage());
+            return back()->with('error', 'Ocorreu um erro. Tente novamente.');
         }
     }
 
@@ -391,29 +406,43 @@ class ToolsController extends Controller
             $viewData['date'] = date('d/m/Y');
             $pdf = Pdf::loadView($pdfView, $viewData);
             Mail::send('emails.simulation-lead', ['name' => $name, 'simulationType' => $type], function ($message) use ($email, $type, $pdf) {
-                $message->from('clientes@houseteamconsultores.pt', 'House Team')
+                $message->from(config('mail.from.address'), config('mail.from.name'))
                     ->to($email)
                     ->subject($type . ' - Resultado Detalhado')
                     ->attachData($pdf->output(), 'simulacao.pdf');
             });
         } catch (\Exception $e) {
-            Log::error('Erro ao enviar email de simulação: ' . $e->getMessage());
+            Log::error('Erro email PDF: ' . $e->getMessage());
         }
     }
 
-    // --- FUNÇÃO DE INTEGRAÇÃO COM CRM ---
+    private function savePdfToStorage($content, $prefix)
+    {
+        try {
+            $fileName = $prefix . '_' . time() . '_' . Str::random(6) . '.pdf';
+            Storage::disk('public')->put('simulations/' . $fileName, $content);
+            return asset('storage/simulations/' . $fileName);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     private function sendToCrm(array $contactData, string $pipelineType, $consultant = null)
     {
         try {
-            // 1. Cria ou Recupera Contacto
             $contact = $this->crmService->createContact($contactData);
 
             if ($contact && isset($contact['id'])) {
                 
-                // 2. ATRIBUIÇÃO AO CONSULTOR (OU FALLBACK PARA HUGO)
-                $ownerId = ($consultant && !empty($consultant->crm_user_id))
-                    ? $consultant->crm_user_id
-                    : self::DEFAULT_CRM_ID;
+                // Lógica de Atribuição (Com Fallback Específico)
+                $ownerId = self::DEFAULT_CRM_ID;
+                
+                if ($consultant && !empty($consultant->crm_user_id)) {
+                    $ownerId = $consultant->crm_user_id;
+                } elseif ($consultant && str_contains(strtolower($consultant->name), 'margarida')) {
+                    // Fallback de Segurança para Margarida (se o banco estiver vazio)
+                    $ownerId = self::MARGARIDA_CRM_ID;
+                }
 
                 $this->crmService->assignUser($contact['id'], $ownerId);
 
@@ -421,7 +450,6 @@ class ToolsController extends Controller
                     $this->crmService->addNote($contact['id'], $contactData['description']);
                 }
                 
-                // 3. Cria Oportunidade no Funil Correto
                 $this->crmService->createOpportunity($contact['id'], $contactData, $pipelineType);
             }
         } catch (\Exception $e) {

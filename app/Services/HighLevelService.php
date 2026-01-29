@@ -25,12 +25,8 @@ class HighLevelService
         ];
     }
 
-    /**
-     * Cria ou Recupera um contacto (Evita Duplicados)
-     */
     public function createContact(array $data)
     {
-        // 1. Tenta encontrar primeiro pelo email
         if (!empty($data['email'])) {
             $existing = $this->lookupContact($data['email']);
             if ($existing) {
@@ -38,7 +34,6 @@ class HighLevelService
             }
         }
 
-        // 2. Se não existe, prepara para criar
         $names = $this->splitName($data['name'] ?? '');
 
         $payload = [
@@ -50,7 +45,6 @@ class HighLevelService
             'source'    => $data['source'] ?? 'Site House Team',
         ];
 
-        // Limpa campos vazios
         $payload = array_filter($payload, fn($value) => !empty($value));
 
         try {
@@ -63,7 +57,6 @@ class HighLevelService
                 return $contact;
             }
 
-            // Fallback para duplicados não detectados antes
             Log::warning('GHL: Erro criação (possível duplicado), recuperando...', ['body' => $response->body()]);
             return $this->lookupContact($data['email']);
 
@@ -73,9 +66,6 @@ class HighLevelService
         }
     }
 
-    /**
-     * Procura contato pelo Email
-     */
     public function lookupContact($email)
     {
         if (empty($email)) return null;
@@ -94,9 +84,6 @@ class HighLevelService
         return null;
     }
 
-    /**
-     * Atribui o Contacto a um Consultor
-     */
     public function assignUser($contactId, $userId)
     {
         if (!$contactId || !$userId) return;
@@ -126,34 +113,19 @@ class HighLevelService
         }
     }
 
-    /**
-     * Cria Oportunidade no Funil Correto (Lógica Atualizada)
-     */
     public function createOpportunity(string $contactId, array $data, string $type = 'lead')
     {
-        // 1. Mapeamento Inteligente (Tipo -> Configuração no services.php)
         $configMap = [
-            // Compradores
             'buyer'       => ['pipe' => 'buyers',      'stage' => 'buyers_new',      'suffix' => ' - Comprador'],
-            
-            // Vendedores / Proprietários
             'seller'      => ['pipe' => 'sellers',     'stage' => 'sellers_new',     'suffix' => ' - Venda de Imóvel'],
             'valuation'   => ['pipe' => 'sellers',     'stage' => 'sellers_new',     'suffix' => ' - Pedido de Avaliação'],
-            
-            // Recrutamento
             'recruitment' => ['pipe' => 'recruitment', 'stage' => 'recruitment_new', 'suffix' => ' - Candidatura Espontânea'],
-            
-            // Crédito
             'credit'      => ['pipe' => 'credit',      'stage' => 'credit_new',      'suffix' => ' - Crédito Habitação'],
-            
-            // Padrão (Lead Geral)
             'lead'        => ['pipe' => 'buyers',      'stage' => 'buyers_new',      'suffix' => ' - Lead Site'],
         ];
 
-        // 2. Define a configuração a usar
         $conf = $configMap[$type] ?? $configMap['lead'];
 
-        // 3. Busca os IDs HARDCODED no config/services.php
         $pipelineId = config("services.ghl.pipelines.{$conf['pipe']}");
         $stageId    = config("services.ghl.stages.{$conf['stage']}");
 
@@ -162,7 +134,6 @@ class HighLevelService
             return false;
         }
 
-        // 4. Monta o payload
         $payload = [
             'pipelineId' => $pipelineId,
             'stageId'    => $stageId,
@@ -173,7 +144,12 @@ class HighLevelService
         ];
 
         if (!empty($data['property_price'])) {
-            $payload['monetaryValue'] = (float) $data['property_price'];
+            $price = $data['property_price'];
+            if (is_string($price)) {
+                $price = str_replace(['.', ' ', '€'], '', $price);
+                $price = str_replace(',', '.', $price);
+            }
+            $payload['monetaryValue'] = (float) $price;
         }
 
         try {
@@ -181,7 +157,7 @@ class HighLevelService
                 ->post("{$this->baseUrl}/pipelines/{$pipelineId}/opportunities", $payload);
 
             if ($response->successful()) {
-                Log::info("GHL: Oportunidade criada no pipeline [{$conf['pipe']}]");
+                Log::info("GHL: Oportunidade criada no pipeline [{$conf['pipe']}] com valor: " . ($payload['monetaryValue'] ?? 0));
                 return true;
             }
 
@@ -194,9 +170,6 @@ class HighLevelService
         }
     }
 
-    /**
-     * Busca pipelines para DEBUG
-     */
     public function getPipelines()
     {
         try {

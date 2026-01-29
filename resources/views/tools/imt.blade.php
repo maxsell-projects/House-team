@@ -4,7 +4,6 @@
 
 {{-- 
     1. OVERRIDE DE DESIGN SYSTEM (SE TIVER CONSULTORA)
-    Transforma a ferramenta em "Navy & Gold" automaticamente se houver consultora.
 --}}
 @if(isset($consultant))
     <style>
@@ -60,7 +59,7 @@
     </style>
 @endif
 
-{{-- HEADER (Com textura padrão ou personalizada) --}}
+{{-- HEADER --}}
 <div class="bg-ht-navy text-white pt-40 pb-20 text-center relative overflow-hidden">
     @if(isset($consultant))
         <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
@@ -344,6 +343,8 @@
                     <div class="space-y-4">
                         <input type="text" x-model="lead_name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent" placeholder="{{ __('tools.imt.input_name') }}">
                         <input type="email" x-model="lead_email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent" placeholder="{{ __('tools.imt.input_email') }}">
+                        {{-- NOVO CAMPO DE TELEFONE --}}
+                        <input type="tel" x-model="lead_phone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent" placeholder="{{ __('contact.placeholder_phone') }} (Obrigatório)">
                     </div>
                 </div>
                 <div class="bg-slate-50 px-8 py-6 flex flex-col gap-3">
@@ -378,7 +379,7 @@
             finalStamp: 0,
             totalPayable: 0,
             
-            // Variáveis de Transparência (Corrigidas)
+            // Variáveis de Transparência
             imtBreakdown: {
                 taxableValue: 0,
                 rateText: 'N/A',
@@ -396,6 +397,7 @@
             loading: false,
             lead_name: '',
             lead_email: '',
+            lead_phone: '', // Adicionado ao JS
 
             // --- MÉTODOS DE UI ---
             setBuyerEligible(buyerIndex, value) {
@@ -419,8 +421,7 @@
                 if (buyerIndex === 2 && this.buyer2Age > 35) this.buyer2Eligible = false;
             },
 
-            // --- LÓGICA DE CÁLCULO (IMPORTADA & CORRIGIDA) ---
-            
+            // --- LÓGICA DE CÁLCULO ---
             calculateNormalIMT(valor, tabela) {
                 let taxa = 0;
                 let parcelaAbater = 0;
@@ -589,7 +590,7 @@
 
             // --- LÓGICA DE ENVIO DE LEAD (DO HOUSE TEAM) ---
             async submitLead() {
-                if(!this.lead_name || !this.lead_email) { 
+                if(!this.lead_name || !this.lead_email || !this.lead_phone) { 
                     alert('{{ __('tools.imt.alert_fill') }}'); 
                     return; 
                 }
@@ -611,7 +612,8 @@
                             finalStamp: this.finalStamp,
                             totalPayable: this.totalPayable,
                             lead_name: this.lead_name,
-                            lead_email: this.lead_email
+                            lead_email: this.lead_email,
+                            lead_phone: this.lead_phone // Enviando Telefone
                         })
                     });
 
@@ -621,6 +623,7 @@
                     this.showLeadModal = false;
                     this.lead_name = '';
                     this.lead_email = '';
+                    this.lead_phone = '';
                 } catch(e) {
                     console.error(e);
                     alert('{{ __('tools.imt.alert_error') }}');

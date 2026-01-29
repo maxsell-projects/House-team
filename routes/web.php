@@ -8,12 +8,11 @@ use App\Models\Consultant;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ToolsController;
-use App\Http\Controllers\ConsultantController; // <--- O NOME CORRETO É ESSE
+use App\Http\Controllers\ConsultantController;
 
 // ==============================================================================
 // 1. ROTAS DE DOMÍNIO EXTERNO (CONSULTORAS) - PRIORIDADE MÁXIMA
 // ==============================================================================
-// Captura qualquer domínio que NÃO SEJA o principal ou localhost
 Route::domain('{domain}')
     ->where(['domain' => '^(?!houseteamconsultores\.pt|www\.houseteamconsultores\.pt|localhost|127\.0\.0\.1).*$'])
     ->group(function () {
@@ -21,11 +20,10 @@ Route::domain('{domain}')
         // 1.1 Home da Consultora (Landing Page)
         Route::get('/', [ConsultantController::class, 'index'])->name('consultant.home');
         
-        // 1.2 NOVA ROTA: Inventário Completo (Mascarado)
-        // Permite ver todos os imóveis dentro do site da consultora
+        // 1.2 Inventário Completo (Mascarado)
         Route::get('/imoveis', [ConsultantController::class, 'inventory'])->name('consultant.inventory');
 
-        // 1.3 Detalhe do Imóvel (Com design da consultora)
+        // 1.3 Detalhe do Imóvel
         Route::get('/imoveis/{property:slug}', [ConsultantController::class, 'showProperty'])->name('consultant.property.show');
 
         // 1.4 FERRAMENTAS (Views personalizadas)
@@ -34,6 +32,7 @@ Route::domain('{domain}')
         Route::get('/ferramentas/imt', [ConsultantController::class, 'showImt'])->name('consultant.tools.imt');
 
         // 1.5 AÇÕES (POST)
+        Route::post('/ferramentas/mais-valias/calcular-simples', [ToolsController::class, 'calculateGainsOnly']); // NOVA ROTA AJAX
         Route::post('/ferramentas/mais-valias/calcular', [ToolsController::class, 'calculateGains']);
         Route::post('/ferramentas/simulador-credito/enviar', [ToolsController::class, 'sendCreditSimulation']);
         Route::post('/ferramentas/imt/enviar', [ToolsController::class, 'sendImtSimulation']);
@@ -77,6 +76,7 @@ Route::get('/ferramentas/imt', function () { return view('tools.imt'); })->name(
 Route::post('/ferramentas/imt/enviar', [ToolsController::class, 'sendImtSimulation'])->name('tools.imt.send');
 
 Route::get('/ferramentas/mais-valias', function () { return view('tools.gains'); })->name('tools.gains');
+Route::post('/ferramentas/mais-valias/calcular-simples', [ToolsController::class, 'calculateGainsOnly'])->name('tools.gains.calculate-simple'); // NOVA ROTA AJAX
 Route::post('/ferramentas/mais-valias/calcular', [ToolsController::class, 'calculateGains'])->name('tools.gains.calculate');
 
 // --- BLOG ---
@@ -109,15 +109,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
         Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
 
-        Route::patch('/properties/{property}/toggle', [App\Http\Controllers\PropertyController::class, 'toggleVisibility'])
+        Route::patch('/properties/{property}/toggle', [PropertyController::class, 'toggleVisibility'])
             ->name('admin.properties.toggle');
         
         Route::resource('properties', PropertyController::class)->names('admin.properties');
         
-        // ========================================================
-        // Rotas de Consultores para Admin
-        // ========================================================
-        
+        // Consultores
         Route::get('consultants', [ConsultantController::class, 'adminIndex'])
             ->name('admin.consultants.index');
 
@@ -131,7 +128,6 @@ Route::prefix('admin')->group(function () {
                 'destroy' => 'admin.consultants.destroy',
             ]);
         
-        // Outras rotas do admin...
         Route::post('/properties/reorder', [PropertyController::class, 'reorder'])->name('admin.properties.reorder');
         Route::post('/properties/{property}/move-to-top', [PropertyController::class, 'moveToTop'])->name('admin.properties.moveToTop');
     });

@@ -4,7 +4,6 @@
 
 {{-- 
     1. OVERRIDE DE DESIGN SYSTEM (SE TIVER CONSULTORA)
-    Transforma a ferramenta em "Navy & Gold" automaticamente.
 --}}
 @if(isset($consultant))
     <style>
@@ -35,12 +34,12 @@
         /* Ajustes de Hover */
         .hover\:bg-ht-accent:hover { background-color: #b08d4b !important; }
         
-        /* Ajuste visual dos inputs (mais elegantes) */
-        input[type="number"], select {
+        /* Ajuste visual dos inputs */
+        input[type="number"], select, input[type="text"], input[type="email"], input[type="tel"] {
             border-radius: 4px !important;
             border-color: #e2e8f0;
         }
-        input[type="number"]:focus, select:focus {
+        input:focus, select:focus {
             border-color: var(--color-gold) !important;
             box-shadow: 0 0 0 1px var(--color-gold) !important;
         }
@@ -60,17 +59,16 @@
     </style>
 @endif
 
-{{-- CORREÇÃO: x-data MOVIDO PARA CÁ (WRAPPER EXTERNO) PARA ENGLOBAR O MODAL --}}
+{{-- WRAPPER EXTERNO COM X-DATA --}}
 <div class="bg-slate-50 min-h-screen pt-40 pb-12 relative overflow-hidden" x-data="gainsForm()">
     
-    {{-- Fundo Decorativo (Só aparece na versão Consultora) --}}
     @if(isset($consultant))
         <div class="absolute top-0 right-0 w-1/3 h-96 bg-ht-navy opacity-5 -z-10" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 100%);"></div>
     @endif
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {{-- Cabeçalho da Ferramenta --}}
+        {{-- Cabeçalho --}}
         <div class="text-center mb-10" data-aos="fade-down">
             @if(isset($consultant))
                 <span class="text-ht-accent font-bold tracking-widest text-xs uppercase mb-2 block">{{ __('menu.tools') }}</span>
@@ -93,27 +91,26 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.gains.label_value') }}</label>
-                            <input type="number" step="0.01" x-model="form.acquisition_value" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent focus:border-transparent text-ht-navy placeholder-slate-400 font-bold" placeholder="Ex: 150000,00">
+                            <input type="number" step="0.01" x-model="form.acquisition_value" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent font-bold placeholder-slate-400 text-ht-navy" placeholder="Ex: 150000,00">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.gains.label_year') }}</label>
-                                <select x-model="form.acquisition_year" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent focus:border-transparent text-ht-navy">
-                                    @foreach(range(2025, 1901) as $year)
+                                <select x-model="form.acquisition_year" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent text-ht-navy">
+                                    @foreach(range(2026, 1901) as $year)
                                         <option value="{{ $year }}">{{ $year }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.gains.label_month') }}</label>
-                                <select x-model="form.acquisition_month" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent focus:border-transparent text-ht-navy">
+                                <select x-model="form.acquisition_month" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent text-ht-navy">
                                     @foreach(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as $month)
                                         <option value="{{ $month }}">{{ $month }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        {{-- CONSTRUÇÃO PRÓPRIA --}}
                         <div class="md:col-span-2 pt-2 border-t border-slate-100 mt-2">
                              <label class="block text-sm font-bold text-ht-navy mb-3">{{ __('tools.gains.question_self_built') }}</label>
                              <div class="flex gap-6">
@@ -134,20 +131,20 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.gains.label_value') }}</label>
-                            <input type="number" step="0.01" x-model="form.sale_value" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent focus:border-transparent text-ht-navy placeholder-slate-400 font-bold" placeholder="Ex: 300000,00">
+                            <input type="number" step="0.01" x-model="form.sale_value" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent font-bold placeholder-slate-400 text-ht-navy" placeholder="Ex: 300000,00">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.gains.label_year') }}</label>
-                                <select x-model="form.sale_year" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent focus:border-transparent text-ht-navy">
-                                    @foreach(range(2025, 1901) as $year)
+                                <select x-model="form.sale_year" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent text-ht-navy">
+                                    @foreach(range(2026, 1901) as $year)
                                         <option value="{{ $year }}">{{ $year }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">{{ __('tools.gains.label_month') }}</label>
-                                <select x-model="form.sale_month" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent focus:border-transparent text-ht-navy">
+                                <select x-model="form.sale_month" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent text-ht-navy">
                                     @foreach(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as $month)
                                         <option value="{{ $month }}">{{ $month }}</option>
                                     @endforeach
@@ -330,7 +327,8 @@
                 </div>
 
                 <section class="border-t border-slate-200 pt-8">
-                    <button type="button" @click="openModal" class="w-full bg-ht-navy text-white font-bold py-5 rounded-3xl shadow-xl hover:bg-ht-primary hover:shadow-2xl transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1">
+                    {{-- NOVO BOTÃO: CALCULAR APENAS (AJAX) --}}
+                    <button type="button" @click="calculateOnly" class="w-full bg-ht-navy text-white font-bold py-5 rounded-3xl shadow-xl hover:bg-ht-primary hover:shadow-2xl transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1">
                         {{ __('tools.gains.btn_simulate') }}
                     </button>
                 </section>
@@ -410,6 +408,14 @@
                             </div>
                         </div>
 
+                        {{-- BOTÃO CTA DEPOIS DE CALCULAR --}}
+                        <div class="text-center pt-2">
+                            <p class="text-sm font-medium text-slate-600 mb-3">Quer o relatório detalhado em PDF?</p>
+                            <button @click="openModal" class="w-full bg-ht-accent text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-ht-navy transition-all uppercase tracking-widest text-xs">
+                                {{ __('tools.gains.btn_get_results') }}
+                            </button>
+                        </div>
+
                         <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 text-xs text-blue-800 leading-relaxed">
                             <strong class="block mb-2 font-bold text-blue-900">{{ __('tools.gains.legal_note_title') }}</strong>
                             {{ __('tools.gains.legal_note_text') }}
@@ -456,6 +462,11 @@
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-1">{{ __('tools.gains.input_email') }}</label>
                                 <input type="email" x-model="form.lead_email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent">
+                            </div>
+                            {{-- NOVO CAMPO TELEFONE --}}
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">{{ __('contact.channel_phone') }}</label>
+                                <input type="tel" x-model="form.lead_phone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ht-accent" placeholder="{{ __('contact.placeholder_phone') }} (Obrigatório)">
                             </div>
                         </div>
                     </div>
@@ -505,7 +516,8 @@
                 reinvest_intention: 'Não',
                 reinvestment_amount: '',
                 lead_name: '',
-                lead_email: ''
+                lead_email: '',
+                lead_phone: '' // Campo novo
             },
             results: {
                 sale_fmt: '0,00',
@@ -534,28 +546,58 @@
                 }
             },
             
-            openModal() {
+            // Passo 1: Calcular e Mostrar Resultados (AJAX)
+            async calculateOnly() {
                 if(!this.form.acquisition_value || !this.form.sale_value) {
                     alert("{{ __('tools.gains.alert_fill_values') }}");
                     return;
                 }
+
+                try {
+                    if(this.form.sold_to_state === 'Sim') this.form.annual_income = 0; 
+
+                    // Chama a rota de cálculo apenas (GET ou POST específico)
+                    const response = await fetch('{{ url("/ferramentas/mais-valias/calcular-simples") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(this.form)
+                    });
+                    
+                    if (!response.ok) throw new Error('Erro no cálculo');
+
+                    this.results = await response.json();
+                    this.hasCalculated = true;
+                    
+                    this.$nextTick(() => {
+                        const resultDiv = this.$el.querySelector('.bg-ht-navy');
+                        if(resultDiv) resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+
+                } catch (e) {
+                    console.error("Erro no cálculo:", e);
+                    alert("Verifique os valores preenchidos.");
+                }
+            },
+
+            openModal() {
+                if(!this.hasCalculated) {
+                    // Se tentar abrir modal sem calcular, calcula primeiro
+                    this.calculateOnly();
+                }
                 this.showLeadModal = true;
             },
 
+            // Passo 2: Enviar Lead e Gerar PDF
             async submit() {
-                if(!this.form.lead_name || !this.form.lead_email) {
+                if(!this.form.lead_name || !this.form.lead_email || !this.form.lead_phone) {
                     alert("{{ __('tools.gains.alert_fill_contact') }}");
                     return;
                 }
 
                 try {
-                    if(this.form.sold_to_state === 'Sim') {
-                        this.form.annual_income = 0; 
-                    }
-
-                    // CORREÇÃO CRÍTICA AQUI: Usar url() relativa para evitar CORS
-                    // Isso garante que o fetch vá para o domínio atual (margarida.site.com)
-                    // e não para o domínio original, se o usuário estiver lá.
                     const response = await fetch('{{ url("/ferramentas/mais-valias/calcular") }}', {
                         method: 'POST',
                         headers: {
@@ -570,19 +612,13 @@
                         return;
                     }
 
-                    this.results = await response.json();
-                    this.hasCalculated = true;
+                    // Sucesso
+                    alert('{{ __('tools.credit.alert_success') }}'); // Reutilizando msg de sucesso genérica
                     this.showLeadModal = false; 
                     
-                    this.$nextTick(() => {
-                        const resultDiv = this.$el.querySelector('.bg-ht-navy');
-                        if(resultDiv) {
-                            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    });
-
                 } catch (e) {
-                    console.error("Erro no cálculo:", e);
+                    console.error("Erro no envio:", e);
+                    alert("Erro ao enviar. Tente novamente.");
                 }
             }
         }
