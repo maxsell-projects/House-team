@@ -216,7 +216,7 @@ class ToolsController extends Controller
                     ->subject('Simulação Crédito Habitação - Resultado Detalhado')
                     ->attachData($pdfContent, 'simulacao.pdf');
             });
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Erro email simulação crédito: ' . $e->getMessage());
         }
 
@@ -394,7 +394,7 @@ class ToolsController extends Controller
 
             return back()->with('success', 'Mensagem enviada com sucesso!');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Erro Contacto: ' . $e->getMessage());
             return back()->with('error', 'Ocorreu um erro. Tente novamente.');
         }
@@ -411,7 +411,7 @@ class ToolsController extends Controller
                     ->subject($type . ' - Resultado Detalhado')
                     ->attachData($pdf->output(), 'simulacao.pdf');
             });
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Erro email PDF: ' . $e->getMessage());
         }
     }
@@ -422,7 +422,7 @@ class ToolsController extends Controller
             $fileName = $prefix . '_' . time() . '_' . Str::random(6) . '.pdf';
             Storage::disk('public')->put('simulations/' . $fileName, $content);
             return asset('storage/simulations/' . $fileName);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }
@@ -452,7 +452,7 @@ class ToolsController extends Controller
                 
                 $this->crmService->createOpportunity($contact['id'], $contactData, $pipelineType);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('GHL Integration Error: ' . $e->getMessage());
         }
     }
