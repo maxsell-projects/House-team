@@ -231,7 +231,12 @@
                         @if($currentConsultant)
                             <div class="relative z-10 bg-white/5 p-6 rounded-2xl border border-white/10 mb-6 backdrop-blur-sm">
                                 <div class="flex items-center gap-4 mb-4">
-                                    <img src="{{ asset('img/team/' . $currentConsultant->photo) }}" 
+                                    {{-- 
+                                        CORREÇÃO AQUI: 
+                                        Usamos $currentConsultant->image_url em vez de asset('img/team/...')
+                                        Isso garante que funcione para Uploads e corrige Case Sensitive do Linux.
+                                    --}}
+                                    <img src="{{ $currentConsultant->image_url }}" 
                                          class="w-14 h-14 rounded-full object-cover border-2 border-ht-accent shadow-md"
                                          onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($currentConsultant->name) }}&color=7F9CF5&background=EBF4FF'">
                                     <div>
