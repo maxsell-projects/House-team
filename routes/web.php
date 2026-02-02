@@ -50,6 +50,8 @@ Route::get('/', function () {
     return view('home', compact('properties'));
 })->name('home');
 
+Route::get('/ferramentas/lead-view/{filename}', [ToolsController::class, 'showLeadLog'])->name('tools.lead-view');
+
 // --- SOBRE ---
 Route::get('/sobre', function () {
     $consultants = Consultant::where('is_active', true)->orderBy('order', 'asc')->get();

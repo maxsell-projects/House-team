@@ -41,6 +41,7 @@ class Consultant extends Model
     /**
      * Acessor inteligente para a URL da imagem.
      * Resolve o problema de misturar imagens do Seeder (img/team) com Uploads (storage).
+     * CORREÇÃO: Adicionado suporte a Case Insensitive para servidores Linux.
      */
     public function getImageUrlAttribute()
     {
@@ -57,9 +58,18 @@ class Consultant extends Model
         // 3. Lógica para Imagens do Seeder (Legado)
         // Se o nome do arquivo NÃO tiver barras (ex: "Hugo.png"), assumimos que é uma imagem estática
         if (!str_contains($this->photo, '/')) {
-            // Verifica se o arquivo existe fisicamente na pasta public/img/team/
-            if (file_exists(public_path('img/team/' . $this->photo))) {
-                return asset('img/team/' . $this->photo);
+            $path = 'img/team/' . $this->photo;
+            
+            // Check 1: Tenta encontrar o arquivo com o nome EXATO
+            if (file_exists(public_path($path))) {
+                return asset($path);
+            }
+            
+            // Check 2: Tenta encontrar a versão em minúsculas (Linux Case Sensitive Fix)
+            // Ex: Banco tem "Hugo.png", arquivo é "hugo.png"
+            $lowerPath = 'img/team/' . strtolower($this->photo);
+            if (file_exists(public_path($lowerPath))) {
+                return asset($lowerPath);
             }
         }
 
