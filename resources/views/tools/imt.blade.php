@@ -397,7 +397,7 @@
             loading: false,
             lead_name: '',
             lead_email: '',
-            lead_phone: '', // Adicionado ao JS
+            lead_phone: '',
 
             // --- MÉTODOS DE UI ---
             setBuyerEligible(buyerIndex, value) {
@@ -417,72 +417,86 @@
             },
 
             checkAge(buyerIndex) {
+                // Validação visual simples, a lógica real está no calculate()
                 if (buyerIndex === 1 && this.buyer1Age > 35) this.buyer1Eligible = false;
                 if (buyerIndex === 2 && this.buyer2Age > 35) this.buyer2Eligible = false;
             },
 
-            // --- LÓGICA DE CÁLCULO ---
+            // --- LÓGICA DE CÁLCULO ATUALIZADA (OE 2026) ---
             calculateNormalIMT(valor, tabela) {
                 let taxa = 0;
                 let parcelaAbater = 0;
                 
-                // TABELAS IMT 2025
+                // TABELA I (Continente - HPP)
                 if (tabela === 'hpp_continente') {
-                    if (valor <= 104261) { taxa = 0; parcelaAbater = 0; }
-                    else if (valor <= 142618) { taxa = 0.02; parcelaAbater = 2085.22; }
-                    else if (valor <= 194458) { taxa = 0.05; parcelaAbater = 6363.76; }
-                    else if (valor <= 324058) { taxa = 0.07; parcelaAbater = 10252.92; }
-                    else if (valor <= 648022) { taxa = 0.08; parcelaAbater = 13493.50; }
-                    else if (valor <= 1128287) { return valor * 0.06; }
-                    else { return valor * 0.075; }
+                    if (valor <= 106346) { taxa = 0; parcelaAbater = 0; }
+                    else if (valor <= 145470) { taxa = 0.02; parcelaAbater = 2126.92; }
+                    else if (valor <= 198347) { taxa = 0.05; parcelaAbater = 6491.02; }
+                    else if (valor <= 330539) { taxa = 0.07; parcelaAbater = 10457.96; }
+                    else if (valor <= 660982) { taxa = 0.08; parcelaAbater = 13763.35; } // Limite superior da progressiva
+                    else if (valor <= 1150853) { return valor * 0.06; } // Taxa Única 6%
+                    else { return valor * 0.075; } // Taxa Única 7.5%
+                    
                     return Math.max(0, (valor * taxa) - parcelaAbater);
                 }
 
+                // TABELA IV (Ilhas - HPP)
                 if (tabela === 'hpp_ilhas') {
-                    if (valor <= 130326) { taxa = 0; parcelaAbater = 0; }
-                    else if (valor <= 178273) { taxa = 0.02; parcelaAbater = 2606.52; }
-                    else if (valor <= 243073) { taxa = 0.05; parcelaAbater = 7954.71; }
-                    else if (valor <= 405073) { taxa = 0.07; parcelaAbater = 12816.17; }
-                    else if (valor <= 810145) { taxa = 0.08; parcelaAbater = 16866.90; }
-                    else if (valor <= 1410359) { return valor * 0.06; }
-                    else { return valor * 0.075; }
+                    if (valor <= 132933) { taxa = 0; parcelaAbater = 0; }
+                    else if (valor <= 181838) { taxa = 0.02; parcelaAbater = 2658.66; }
+                    else if (valor <= 247934) { taxa = 0.05; parcelaAbater = 8113.80; }
+                    else if (valor <= 413174) { taxa = 0.07; parcelaAbater = 13072.48; }
+                    else if (valor <= 826228) { taxa = 0.08; parcelaAbater = 17204.22; } // Limite superior da progressiva
+                    else if (valor <= 1438566) { return valor * 0.06; } // Taxa Única 6%
+                    else { return valor * 0.075; } // Taxa Única 7.5%
+                    
                     return Math.max(0, (valor * taxa) - parcelaAbater);
                 }
 
+                // TABELA III (Continente - Secundária/Habitação)
                 if (tabela === 'secundaria_continente') {
-                    if (valor <= 104261) { taxa = 0.01; parcelaAbater = 0; }
-                    else if (valor <= 142618) { taxa = 0.02; parcelaAbater = 1042.61; }
-                    else if (valor <= 194458) { taxa = 0.05; parcelaAbater = 5321.15; }
-                    else if (valor <= 324058) { taxa = 0.07; parcelaAbater = 9210.31; }
-                    else if (valor <= 621501) { taxa = 0.08; parcelaAbater = 12450.89; }
-                    else if (valor <= 1128287) { return valor * 0.06; }
-                    else { return valor * 0.075; }
+                    if (valor <= 106346) { taxa = 0.01; parcelaAbater = 0; }
+                    else if (valor <= 145470) { taxa = 0.02; parcelaAbater = 1063.46; }
+                    else if (valor <= 198347) { taxa = 0.05; parcelaAbater = 5427.56; }
+                    else if (valor <= 330539) { taxa = 0.07; parcelaAbater = 9394.50; }
+                    else if (valor <= 633931) { taxa = 0.08; parcelaAbater = 12699.89; } // Nota: Limite ligeiramente diferente da HPP
+                    else if (valor <= 1150853) { return valor * 0.06; } // Taxa Única 6%
+                    else { return valor * 0.075; } // Taxa Única 7.5%
+                    
                     return Math.max(0, (valor * taxa) - parcelaAbater);
                 }
 
+                // TABELA VI (Ilhas - Secundária/Habitação)
                 if (tabela === 'secundaria_ilhas') {
-                    if (valor <= 130326) { taxa = 0.01; parcelaAbater = 0; }
-                    else if (valor <= 178273) { taxa = 0.02; parcelaAbater = 1303.26; }
-                    else if (valor <= 243073) { taxa = 0.05; parcelaAbater = 6651.45; }
-                    else if (valor <= 405073) { taxa = 0.07; parcelaAbater = 11512.91; }
-                    else if (valor <= 776876) { taxa = 0.08; parcelaAbater = 15563.64; }
-                    else if (valor <= 1410359) { return valor * 0.06; }
-                    else { return valor * 0.075; }
+                    if (valor <= 132933) { taxa = 0.01; parcelaAbater = 0; }
+                    else if (valor <= 181838) { taxa = 0.02; parcelaAbater = 1329.33; }
+                    else if (valor <= 247934) { taxa = 0.05; parcelaAbater = 6784.47; }
+                    else if (valor <= 413174) { taxa = 0.07; parcelaAbater = 11743.15; }
+                    else if (valor <= 792414) { taxa = 0.08; parcelaAbater = 15874.89; }
+                    else if (valor <= 1438566) { return valor * 0.06; } // Taxa Única 6%
+                    else { return valor * 0.075; } // Taxa Única 7.5%
+                    
                     return Math.max(0, (valor * taxa) - parcelaAbater);
                 }
+                
                 return 0;
             },
 
+            // Lógica IMT Jovem 2026 (Tabelas II e V)
             calculateYoungIMT(valor, location) {
-                const limitIsencao = location === 'continente' ? 324058 : 405073;
-                const limitParcial = location === 'continente' ? 648022 : 810145;
+                // Limites 2026
+                const limitIsencao = location === 'continente' ? 330539 : 413174;
+                const limitParcial = location === 'continente' ? 660982 : 826228;
                 const taxaExcedente = 0.08;
 
                 if (valor <= limitIsencao) {
+                    // Isenção total até ao 1º escalão
                     return 0; 
                 } else if (valor <= limitParcial) {
+                    // Paga 8% apenas sobre o valor que excede a isenção
                     return (valor - limitIsencao) * taxaExcedente;
                 } else {
+                    // Se passar o limite parcial, perde o benefício jovem e aplica a tabela normal (taxas únicas de 6% ou 7.5%)
                     const tabela = location === 'continente' ? 'hpp_continente' : 'hpp_ilhas';
                     return this.calculateNormalIMT(valor, tabela);
                 }
@@ -505,12 +519,13 @@
                 let isContinente = this.location === 'continente';
                 let imtBreakdownText = '';
 
+                // 1. Calcular o IMT Base "Normal" (sem considerar jovem ainda)
                 if (this.purpose === 'rustico') {
                     imtBaseNormal = valorTotal * 0.05;
-                    imtBreakdownText = '5% (Taxa Única)';
+                    imtBreakdownText = '5% (Rústico)';
                 } else if (this.purpose === 'urbano') {
                     imtBaseNormal = valorTotal * 0.065;
-                    imtBreakdownText = '6.5% (Taxa Única)';
+                    imtBreakdownText = '6.5% (Outros Urbanos)';
                 } else if (this.purpose === 'offshore_pessoal' || this.purpose === 'offshore_entidade') {
                     imtBaseNormal = valorTotal * 0.10;
                     imtBreakdownText = '10% (Paraíso Fiscal)';
@@ -520,45 +535,54 @@
                                 (isContinente ? 'secundaria_continente' : 'secundaria_ilhas');
                     
                     imtBaseNormal = this.calculateNormalIMT(valorTotal, tabela);
-                    imtBreakdownText = isHPP ? 'Tabela HPP' : 'Tabela Secundária';
+                    imtBreakdownText = isHPP ? 'Tabela HPP (2026)' : 'Tabela Secundária (2026)';
                 }
 
-                let imtBaseJovem = imtBaseNormal;
+                let imtBaseJovem = imtBaseNormal; // Por defeito, assume normal
                 let seloBaseJovem = valorTotal * rateSelo;
                 let isJovemBenefitApplied = false;
-                let youngBuyersCount = 0;
                 
+                // 2. Verificar Elegibilidade Jovem
+                // Só se aplica se for HPP
                 const isBuyer1Eligible = this.buyer1Eligible && this.buyer1Age <= 35;
                 const isBuyer2Eligible = this.buyersCount === 2 && this.buyer2Eligible && this.buyer2Age <= 35;
-                youngBuyersCount = (isBuyer1Eligible ? 1 : 0) + (isBuyer2Eligible ? 1 : 0);
+                const anyYoungBuyer = isBuyer1Eligible || isBuyer2Eligible;
 
-                if (isHPP && youngBuyersCount > 0) {
+                if (isHPP && anyYoungBuyer) {
                     isJovemBenefitApplied = true;
-                    const limitIsencao = isContinente ? 324058 : 405073;
-                    const limitParcial = isContinente ? 648022 : 810145;
+                    const limitIsencao = isContinente ? 330539 : 413174;
+                    const limitParcial = isContinente ? 660982 : 826228;
                     
+                    // Cálculo da base "Jovem" (valor total do imóvel)
                     if (valorTotal <= limitParcial) {
                         imtBaseJovem = this.calculateYoungIMT(valorTotal, this.location);
                         
+                        // Lógica de Imposto de Selo Jovem
                         if (valorTotal <= limitIsencao) {
-                            seloBaseJovem = 0;
-                            imtBreakdownText = 'Isenção IMT Jovem';
+                            seloBaseJovem = 0; // Isenção total de selo
+                            imtBreakdownText = 'Isenção Total Jovem (OE2026)';
                             this.imtBreakdown.isMarginal = false;
                             this.imtBreakdown.marginalExemption = valorTotal;
                         } else {
+                            // Paga selo sobre o excedente
                             seloBaseJovem = (valorTotal - limitIsencao) * 0.008;
-                            imtBreakdownText = '8% s/ Excedente Jovem';
+                            imtBreakdownText = 'Jovem: Isenção Parc. + 8% Excedente';
                             this.imtBreakdown.isMarginal = true;
                             this.imtBreakdown.marginalExemption = limitIsencao;
                             this.imtBreakdown.marginalRate = 8;
                         }
                     } else {
-                         imtBreakdownText = 'Taxa Normal (Acima limite Jovem)';
+                        // Se ultrapassar o limite parcial (660k/826k), perde isenção jovem
+                         imtBreakdownText = 'Taxa Normal (Acima teto Jovem)';
+                         // Reverte para o cálculo normal, pois perde o benefício
+                         imtBaseJovem = imtBaseNormal; 
+                         seloBaseJovem = valorTotal * rateSelo;
                     }
                 }
                 
                 this.imtBreakdown.isJovemBenefit = isJovemBenefitApplied;
 
+                // 3. Distribuir quotas (Splitting)
                 let buyers = this.buyersCount;
                 let finalIMT = 0;
                 let finalStamp = 0;
@@ -570,7 +594,9 @@
                         if (i === 2 && isBuyer2Eligible) isEligible = true;
                     }
 
-                    if (isEligible) {
+                    // Se o comprador for elegível E o valor permitir benefício, usa a base jovem dividida
+                    // Caso contrário, usa a base normal dividida
+                    if (isEligible && valorTotal <= (isContinente ? 660982 : 826228)) {
                         finalIMT += (imtBaseJovem / buyers);
                         finalStamp += (seloBaseJovem / buyers);
                     } else {
@@ -588,7 +614,7 @@
                 this.imtBreakdown.finalIMT = finalIMT;
             },
 
-            // --- LÓGICA DE ENVIO DE LEAD (DO HOUSE TEAM) ---
+            // --- LÓGICA DE ENVIO DE LEAD (Mantida) ---
             async submitLead() {
                 if(!this.lead_name || !this.lead_email || !this.lead_phone) { 
                     alert('{{ __('tools.imt.alert_fill') }}'); 
@@ -613,7 +639,7 @@
                             totalPayable: this.totalPayable,
                             lead_name: this.lead_name,
                             lead_email: this.lead_email,
-                            lead_phone: this.lead_phone // Enviando Telefone
+                            lead_phone: this.lead_phone
                         })
                     });
 
