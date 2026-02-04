@@ -266,12 +266,17 @@ class ToolsController extends Controller
 
         // 1. Envio Email Admin/Consultor
         try {
-            $primaryEmail = $consultant ? $consultant->email : 'admin@houseteam.pt';
-            $adminEmail = 'admin@houseteam.pt';
+            // CORREÇÃO: Usa o email configurado no .env (MAIL_FROM_ADDRESS) como admin
+            $adminEmail = config('mail.from.address'); 
+
+            // Se existir consultor, ele é o principal, senão é o admin
+            $primaryEmail = $consultant ? $consultant->email : $adminEmail;
 
             Mail::send('emails.contact-lead', ['data' => $data], function ($message) use ($primaryEmail, $adminEmail, $data, $consultant) {
                 $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->to($primaryEmail);
+                
+                // Se foi para o consultor, manda BCC (cópia oculta) para o admin
                 if ($consultant) {
                     $message->bcc($adminEmail);
                     $message->subject("[House Team - {$consultant->name}] " . $data['subject']);
