@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ToolsController;
 use App\Http\Controllers\ConsultantController;
+use App\Http\Controllers\Backoffice\DevelopmentController;
 
 // ==============================================================================
 // 1. ROTAS DE DOMÍNIO EXTERNO (CONSULTORAS) - PRIORIDADE MÁXIMA
@@ -69,6 +70,10 @@ Route::get('lang/{locale}', function ($locale) {
 // --- IMÓVEIS (Site Principal) ---
 Route::get('/imoveis', [PropertyController::class, 'publicIndex'])->name('portfolio');
 Route::get('/imoveis/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
+
+// --- EMPREENDIMENTOS (Site Principal) ---
+Route::get('/empreendimentos', [App\Http\Controllers\Front\DevelopmentController::class, 'index'])->name('developments.index');
+Route::get('/empreendimentos/{slug}', [App\Http\Controllers\Front\DevelopmentController::class, 'show'])->name('developments.show');
 
 // --- FERRAMENTAS (Site Principal - Views Padrão) ---
 Route::get('/ferramentas/simulador-credito', function () { return view('tools.credit'); })->name('tools.credit');
@@ -132,5 +137,12 @@ Route::prefix('admin')->group(function () {
         
         Route::post('/properties/reorder', [PropertyController::class, 'reorder'])->name('admin.properties.reorder');
         Route::post('/properties/{property}/move-to-top', [PropertyController::class, 'moveToTop'])->name('admin.properties.moveToTop');
+        
+        // Empreendimentos (Developments)
+        Route::patch('/developments/{development}/toggle', [DevelopmentController::class, 'toggleVisibility'])
+            ->name('admin.developments.toggle');
+        Route::resource('developments', DevelopmentController::class)->names('admin.developments');
+        Route::post('/developments/reorder', [DevelopmentController::class, 'reorder'])->name('admin.developments.reorder');
+        Route::post('/developments/{development}/move-to-top', [DevelopmentController::class, 'moveToTop'])->name('admin.developments.moveToTop');
     });
 });

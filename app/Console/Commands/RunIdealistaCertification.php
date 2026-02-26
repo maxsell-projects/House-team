@@ -9,7 +9,7 @@ use App\Services\IdealistaExportService;
 class RunIdealistaCertification extends Command
 {
     protected $signature = 'idealista:full-certification';
-    protected $description = 'Certificação Idealista Completa (Com ID Logger e Fixes de E-mail)';
+    protected $description = 'Certificação Idealista Completa (LOG VERBOSE: Request/Response)';
 
     protected $service;
     protected $baseUrl;
@@ -20,57 +20,77 @@ class RunIdealistaCertification extends Command
     public function handle(IdealistaExportService $service)
     {
         $this->service = $service;
-        $this->baseUrl = config('services.idealista.base_url');
+        $this->baseUrl = config('services.idealista.base_url', 'https://partners-sandbox.idealista.pt'); 
         $this->headers = $service->getHeaders('write');
 
-        $this->info("🚀 INICIANDO CERTIFICAÇÃO FINAL (COM LOG DE IDs)");
-        $this->info("URL Alvo: " . $this->baseUrl);
+        $this->alert("🚀 INICIANDO CERTIFICAÇÃO (MODO DEBUG TOTAL)");
+        $this->warn("URL Alvo: " . $this->baseUrl);
         $this->newLine();
 
+        // 1. Contatos
         $this->runContacts();
+        
+        if (!$this->contactId) {
+            $this->error("❌ CRÍTICO: Falha ao criar contato. Usando ID de fallback (perigoso).");
+            if (!$this->confirm('Deseja continuar com ID falso (123456)?')) return;
+            $this->contactId = 123456;
+        }
+
+        // 2. Auth & Visibilidade
         $this->runAuthTests();
         $this->runScopeAndVisibility();
+
+        // 3. Tipos (Com correções de mapping)
         $this->runPropertyTypesHappyPath();
         $this->runPropertyTypesComplex(); 
-        $this->runValidationErrors();
-        $this->runLifecycle(); // <--- AQUI ESTÃO OS FIXES DO E-MAIL
-        $this->runImages();
 
-        $this->info("✅ PROTOCOLO CONCLUÍDO. ATUALIZE SUA PLANILHA COM OS IDs ACIMA!");
+        // 4. Validações e Ciclo de Vida
+        $this->runValidationErrors();
+        
+        if ($this->propertyId) {
+            $this->runLifecycle(); 
+            $this->runImages();
+        } else {
+            $this->error("❌ Pulei Lifecycle e Images pois não temos PropertyID.");
+        }
+
+        $this->newLine();
+        $this->alert("✅ FIM DO PROTOCOLO.");
     }
 
     private function runContacts()
     {
-        $this->info("--- CONTACTS ---");
+        $this->info("=== 1. CONTACTS ===");
 
-        // Contact01: Create
+        // Contact01
         $c1 = ['name' => 'Certification Admin', 'email' => 'admin@house.pt', 'primaryPhoneNumber' => '912345678'];
         $this->exec('Contact01', 'POST', '/v1/contacts', $c1, 201, function($r) {
             $this->contactId = $r['contactId'] ?? null;
+            $this->alert(">>> ID CAPTURADO (Contact01): " . $this->contactId);
         });
 
-        // Fallback
-        if (!$this->contactId) $this->contactId = 33900828; 
-
-        // Errors
+        // Contact02
         $c2 = ['name' => 'Admin', 'primaryPhoneNumber' => '912345678'];
         $this->exec('Contact02', 'POST', '/v1/contacts', $c2, 400);
 
+        // Contact03
         $c3 = ['name' => 'Admin', 'email' => 'invalid_email', 'primaryPhoneNumber' => '912345678'];
         $this->exec('Contact03', 'POST', '/v1/contacts', $c3, 400);
 
-        // Update
-        $c4 = $c1; $c4['name'] = 'Certification Admin Updated';
-        $this->exec('Contact04', 'PUT', "/v1/contacts/{$this->contactId}", $c4, 200);
+        if ($this->contactId) {
+            // Contact04
+            $c4 = $c1; $c4['name'] = 'Certification Admin Updated';
+            $this->exec('Contact04', 'PUT', "/v1/contacts/{$this->contactId}", $c4, 200);
 
-        // List/Get
-        $this->exec('Contact05', 'GET', "/v1/contacts/{$this->contactId}", [], 200);
-        $this->exec('Contact06', 'GET', "/v1/contacts?numPage=1&maxItems=10", [], 200);
+            // Contact05/06
+            $this->exec('Contact05', 'GET', "/v1/contacts/{$this->contactId}", [], 200);
+            $this->exec('Contact06', 'GET', "/v1/contacts?numPage=1&maxItems=10", [], 200);
+        }
     }
 
     private function runAuthTests()
     {
-        $this->info("--- AUTHENTICATION ---");
+        $this->info("=== 2. AUTHENTICATION ===");
         $badH = $this->headers; $badH['Authorization'] = 'Bearer invalid_token';
         $this->exec('Property01', 'POST', '/v1/properties', [], 401, null, $badH);
 
@@ -80,15 +100,16 @@ class RunIdealistaCertification extends Command
 
     private function runScopeAndVisibility()
     {
-        $this->info("--- SCOPE & VISIBILITY ---");
+        $this->info("=== 3. SCOPE & VISIBILITY ===");
         
-        // Property03 (Sale) - ESSE É O ID PRINCIPAL DO TESTE!
         $p3 = $this->base('flat', 'sale', 'SALE');
         $this->exec('Property03', 'POST', '/v1/properties', $p3, 201, function($r) {
             $this->propertyId = $r['propertyId'] ?? null;
+            $this->alert(">>> ID CAPTURADO (Property03): " . $this->propertyId);
         });
 
-        $p4 = $this->base('flat', 'rent', 'RENT'); $p4['operation'] = ['type' => 'rent', 'price' => 1200];
+        $p4 = $this->base('flat', 'rent', 'RENT'); 
+        $p4['operation'] = ['type' => 'rent', 'price' => 1200];
         $this->exec('Property04', 'POST', '/v1/properties', $p4, 201);
 
         $p5 = $this->base('flat', 'sale', 'SCOPE-ID'); $p5['scope'] = 'idealista';
@@ -109,7 +130,7 @@ class RunIdealistaCertification extends Command
 
     private function runPropertyTypesHappyPath()
     {
-        $this->info("--- SIMPLE TYPES ---");
+        $this->info("=== 4. SIMPLE TYPES ===");
         $this->exec('Flat01', 'POST', '/v1/properties', $this->base('flat', 'sale', 'FLAT'), 201);
         
         $house = $this->base('house', 'sale', 'HOUSE');
@@ -122,6 +143,7 @@ class RunIdealistaCertification extends Command
 
         $off = $this->base('office', 'sale', 'OFFICE');
         $off['features'] = ['areaConstructed' => 80, 'conservation' => 'good', 'energyCertificateRating' => 'B', 'officeBuilding' => true, 'liftNumber' => 1, 'roomsSplitted' => 'withWalls', 'conditionedAirType' => 'cold', 'parkingSpacesNumber' => 0];
+        // Adicionando classification específica se necessário, mas testando padrão primeiro
         $this->exec('Office01', 'POST', '/v1/properties', $off, 201);
 
         $stor = $this->base('storage', 'sale', 'STORAGE');
@@ -131,7 +153,8 @@ class RunIdealistaCertification extends Command
 
     private function runPropertyTypesComplex()
     {
-        $this->info("--- COMPLEX TYPES ---");
+        $this->info("=== 5. COMPLEX TYPES & FIXES ===");
+        
         $ch = $this->base('countryhouse', 'sale', 'CHOUSE');
         $ch['features'] = ['type' => 'countryhouse', 'rooms' => 3, 'bathroomNumber' => 1, 'areaConstructed' => 150, 'areaPlot' => 2000, 'conservation' => 'toRestore', 'energyCertificateRating' => 'exempt'];
         $this->exec('CountryHouse01', 'POST', '/v1/properties', $ch, 201);
@@ -140,24 +163,38 @@ class RunIdealistaCertification extends Command
         $com1['features'] = ['type' => 'retail', 'commercialMainActivity' => 'clothing_store', 'areaConstructed' => 100, 'conservation' => 'good', 'energyCertificateRating' => 'C', 'location' => 'on_the_street', 'rooms' => 1];
         $this->exec('Commercial01', 'POST', '/v1/properties', $com1, 201);
 
+        // Commercial02 - FIX: priceTransfer
         $com2 = $this->base('commercial', 'rent', 'COMM2');
-        $com2['features'] = ['type' => 'retail', 'commercialMainActivity' => 'restaurant', 'areaConstructed' => 100, 'conservation' => 'good', 'energyCertificateRating' => 'C', 'location' => 'on_the_street', 'rooms' => 1, 'isATransfer' => true, 'transferPrice' => 50000];
+        $com2['features'] = [
+            'type' => 'retail', 'commercialMainActivity' => 'restaurant', 'areaConstructed' => 100, 
+            'conservation' => 'good', 'energyCertificateRating' => 'C', 'location' => 'on_the_street', 
+            'rooms' => 1, 'isATransfer' => true
+        ];
+        $com2['features']['priceTransfer'] = 50000; // FIX APLICADO
         $this->exec('Commercial02', 'POST', '/v1/properties', $com2, 201);
 
+        // Land01 - FIX: SEM classification
         $l1 = $this->base('land', 'sale', 'LAND-URB');
-        $l1['features'] = ['areaPlot' => 1000, 'type' => 'land_urban', 'roadAccess' => true, 'accessType' => 'urban', 'classification' => 'residential'];
+        $l1['features'] = ['areaPlot' => 1000, 'type' => 'land_urban', 'roadAccess' => true, 'accessType' => 'urban'];
+        if(isset($l1['features']['classification'])) unset($l1['features']['classification']);
         $this->exec('Land01', 'POST', '/v1/properties', $l1, 201);
 
+        // Land02
         $l2 = $this->base('land', 'sale', 'LAND-BLD');
-        $l2['features'] = ['areaPlot' => 5000, 'type' => 'land_countrybuildable', 'roadAccess' => true, 'accessType' => 'road', 'classification' => 'residential'];
+        $l2['features'] = ['areaPlot' => 5000, 'type' => 'land_countrybuildable', 'roadAccess' => true, 'accessType' => 'road'];
+        if(isset($l2['features']['classification'])) unset($l2['features']['classification']);
         $this->exec('Land02', 'POST', '/v1/properties', $l2, 201);
 
+        // Land03
         $l3 = $this->base('land', 'sale', 'LAND-NON');
         $l3['features'] = ['areaPlot' => 10000, 'type' => 'countrynonbuildable', 'roadAccess' => false];
+        if(isset($l3['features']['classification'])) unset($l3['features']['classification']);
         $this->exec('Land03', 'POST', '/v1/properties', $l3, 201);
 
+        // Building01 - FIX: classificationOther
         $bd = $this->base('building', 'sale', 'BUILD');
-        $bd['features'] = ['areaConstructed' => 1000, 'energyCertificateRating' => 'exempt', 'floorsBuilding' => 5, 'parkingSpacesNumber' => 10, 'conservation' => 'good', 'classification' => 'residential'];
+        $bd['features'] = ['areaConstructed' => 1000, 'energyCertificateRating' => 'exempt', 'floorsBuilding' => 5, 'parkingSpacesNumber' => 10, 'conservation' => 'good'];
+        $bd['features']['classificationOther'] = 'residential'; // FIX APLICADO
         $this->exec('Building01', 'POST', '/v1/properties', $bd, 201);
 
         $rm = $this->base('room', 'rent', 'ROOM');
@@ -167,7 +204,7 @@ class RunIdealistaCertification extends Command
 
     private function runValidationErrors()
     {
-        $this->info("--- VALIDATION ERRORS ---");
+        $this->info("=== 6. VALIDATION ERRORS ===");
         $f2 = $this->base('flat', 'sale', 'ERR-AREA'); $f2['features']['areaConstructed'] = 5;
         $this->exec('Flat02', 'POST', '/v1/properties', $f2, 400);
 
@@ -186,8 +223,8 @@ class RunIdealistaCertification extends Command
 
     private function runLifecycle()
     {
-        $this->info("--- LIFECYCLE (FIXED AS PER EMAIL: PUT STATE) ---");
-        // Usamos o ID do Property03
+        $this->info("=== 7. LIFECYCLE (FIX: POST ACTION) ===");
+        
         $this->exec('Property10', 'GET', "/v1/properties/{$this->propertyId}", [], 200);
         $this->exec('Property11', 'GET', "/v1/properties/99999999", [], 404);
         $this->exec('Property12', 'GET', "/v1/properties?numPage=1&maxItems=10", [], 200);
@@ -197,46 +234,44 @@ class RunIdealistaCertification extends Command
 
         $u14 = $u13; $u14['type'] = 'house';
         $this->exec('Property14', 'PUT', "/v1/properties/{$this->propertyId}", $u14, 400);
-
         $this->exec('Property15', 'PUT', "/v1/properties/99999999", $u13, 404);
 
-        // --- CORREÇÃO DO E-MAIL: PUT state=inactive (Não DELETE) ---
+        // FIX: Enviar POST para desativar
         $deactivate = ['state' => 'inactive'];
-        $this->exec('Property16', 'PUT', "/v1/properties/{$this->propertyId}", $deactivate, 200);
-        $this->exec('Property17', 'PUT', "/v1/properties/99999999", $deactivate, 404);
+        $this->exec('Property16', 'POST', "/v1/properties/{$this->propertyId}", $deactivate, 200);
+        $this->exec('Property17', 'POST', "/v1/properties/99999999", $deactivate, 404);
 
-        // --- CORREÇÃO DO E-MAIL: PUT state=active (Não POST) ---
         $reactivate = ['state' => 'active'];
-        $this->exec('Property18', 'PUT', "/v1/properties/{$this->propertyId}", $reactivate, 200);
-        $this->exec('Property19', 'PUT', "/v1/properties/99999999", $reactivate, 404);
+        $this->exec('Property18', 'POST', "/v1/properties/{$this->propertyId}", $reactivate, 200);
+        $this->exec('Property19', 'POST', "/v1/properties/99999999", $reactivate, 404);
     }
 
     private function runImages()
     {
-        $this->info("--- IMAGES (35s Delay) ---");
-        $this->sleepLog();
+        $this->info("=== 8. IMAGES (35s Delay) ===");
         $img1 = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2';
         $img2 = 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0';
 
         $p1 = ['images' => [['url' => $img1, 'label' => 'facade'], ['url' => $img2, 'label' => 'living']]];
+        
         $this->exec('Image01', 'PUT', "/v1/properties/{$this->propertyId}/images", $p1, 202);
+        
         $this->sleepLog();
-
         $this->exec('Image02', 'GET', "/v1/properties/{$this->propertyId}/images", [], 200);
+        
         $this->sleepLog();
-
         $p3 = ['images' => [['url' => $img2, 'label' => 'living'], ['url' => $img1, 'label' => 'facade']]];
         $this->exec('Image03', 'PUT', "/v1/properties/{$this->propertyId}/images", $p3, 202);
+        
         $this->sleepLog();
-
         $p4 = ['images' => [['url' => $img2, 'label' => 'kitchen'], ['url' => $img1, 'label' => 'facade']]];
         $this->exec('Image04', 'PUT', "/v1/properties/{$this->propertyId}/images", $p4, 202);
+        
         $this->sleepLog();
-
         $p5 = ['images' => [['url' => $img1, 'label' => 'facade']]];
         $this->exec('Image05', 'PUT', "/v1/properties/{$this->propertyId}/images", $p5, 202);
+        
         $this->sleepLog();
-
         $this->exec('Image06', 'DELETE', "/v1/properties/{$this->propertyId}/images", [], 200);
     }
 
@@ -261,8 +296,17 @@ class RunIdealistaCertification extends Command
         $h = $customHeaders ?? $this->headers;
         $url = str_starts_with($uri, 'http') ? $uri : $this->baseUrl . $uri;
 
-        $this->line("Running: $id...");
-        
+        $this->line("----------------------------------------------------------------");
+        $this->info("🔄 TESTE: $id | Método: $method");
+        $this->line("📍 URL: $url");
+
+        // --- TURBINADA: LOG DO ENVIO ---
+        if (!empty($data)) {
+            $this->comment("📤 JSON ENVIADO:");
+            $this->output->writeln(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        }
+        // -------------------------------
+
         try {
             if ($method === 'GET') $r = Http::withHeaders($h)->get($url, $data);
             elseif ($method === 'DELETE') $r = Http::withHeaders($h)->delete($url, $data);
@@ -271,31 +315,28 @@ class RunIdealistaCertification extends Command
 
             $status = $r->status();
             $success = ($status == $expect) || ($expect >= 200 && $expect < 300 && $status >= 200 && $status < 300);
-            $tag = $success ? "✅ PASS" : "❌ FAIL";
+            $tag = $success ? "✅ PASSOU" : "❌ FALHOU";
             
-            // --- ID SNIFFER (O SEGREDO!) ---
-            if ($r->successful()) {
-                $json = $r->json();
-                if (isset($json['contactId'])) {
-                    $this->warn(" >>> 🆔 CONTACT ID: " . $json['contactId']);
-                }
-                if (isset($json['propertyId'])) {
-                    $this->warn(" >>> 🆔 PROPERTY ID: " . $json['propertyId']);
-                }
-            }
-            // -----------------------------
-            
-            $this->info("$tag | $id | Status: $status");
+            // --- TURBINADA: LOG DA RESPOSTA ---
+            $this->comment("📥 RESPOSTA RECEBIDA ($status):");
+            $responseBody = $r->json() ?? $r->body();
+            $this->output->writeln(json_encode($responseBody, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            // ----------------------------------
 
-            if ($cb && $r->successful()) $cb($r->json());
+            if ($success) {
+                $this->info("$tag | $id");
+                if ($cb) $cb($r->json());
+            } else {
+                $this->error("$tag | $id | Esperava: $expect | Recebeu: $status");
+            }
 
         } catch (\Exception $e) {
-            $this->error("ERR: " . $e->getMessage());
+            $this->error("ERR EXCEPTION: " . $e->getMessage());
         }
     }
 
     private function sleepLog() {
-        $this->warn("⏳ Aguardando 35s...");
+        $this->warn("⏳ Aguardando 35s (API Rate Limit)...");
         sleep(35);
     }
 }

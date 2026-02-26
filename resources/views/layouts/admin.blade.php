@@ -60,6 +60,11 @@
                     <span>Meus Imóveis</span>
                 </a>
 
+                <a href="{{ route('admin.developments.index') }}" class="flex items-center gap-3 px-4 py-3.5 {{ request()->routeIs('admin.developments.*') ? 'bg-gradient-to-r from-ht-blue to-ht-accent text-white shadow-glow' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl text-sm font-semibold transition-all group">
+                    <svg class="w-5 h-5 {{ request()->routeIs('admin.developments.*') ? 'text-white/90' : 'group-hover:text-ht-blue' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4M9 7h6m-6 4h6m-6 4h6"/></svg>
+                    <span>Empreendimentos</span>
+                </a>
+
                 <a href="{{ route('admin.consultants.index') }}" class="flex items-center gap-3 px-4 py-3.5 {{ request()->routeIs('admin.consultants.*') ? 'bg-gradient-to-r from-ht-blue to-ht-accent text-white shadow-glow' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl text-sm font-semibold transition-all group">
                     <svg class="w-5 h-5 {{ request()->routeIs('admin.consultants.*') ? 'text-white/90' : 'group-hover:text-ht-blue' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     <span>Equipe</span>

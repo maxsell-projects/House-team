@@ -1,0 +1,26 @@
+﻿
+   INFO  Running migrations.  
+
+  2026_02_26_183413_create_development_fractions_table  4.33ms FAIL
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'development_fractions' already exists (Connection: mysql, SQL: create table `development_fractions` (`id` bigint unsigned not null auto_increment primary key, `development_id` bigint unsigned not null, `ref` varchar(255) null, `block` varchar(255) null, `floor` varchar(255) null, `typology` varchar(255) null, `abp` decimal(10, 2) null, `balcony_area` decimal(10, 2) null, `parking_spaces` int null, `price` decimal(12, 2) null, `floor_plan_path` varchar(255) null, `remax_id` varchar(255) null, `status` varchar(255) not null default 'Dispon├¡vel', `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:826
+    822Ôûò                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    823Ôûò                 );
+    824Ôûò             }
+    825Ôûò 
+  Ô×£ 826Ôûò             throw new QueryException(
+    827Ôûò                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    828Ôûò             );
+    829Ôûò         }
+    830Ôûò     }
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:570
+      PDOException::("SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'development_fractions' already exists")
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:570
+      PDOStatement::execute()
+
