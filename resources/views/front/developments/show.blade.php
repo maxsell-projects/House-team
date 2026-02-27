@@ -586,7 +586,7 @@
                         @if($development->consultant_id && $development->consultant)
                         <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center text-center mt-6">
                             <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-ht-accent mb-4 shadow-lg">
-                                <img src="{{ $development->consultant->photo ? asset('img/team/'.$development->consultant->photo) : 'https://ui-avatars.com/api/?name='.urlencode($development->consultant->name).'&color=7F9CF5&background=EBF4FF' }}" class="w-full h-full object-cover">
+                                <img src="{{ $development->consultant->photo ? asset('storage/'.$development->consultant->photo) : 'https://ui-avatars.com/api/?name='.urlencode($development->consultant->name).'&color=7F9CF5&background=EBF4FF' }}" class="w-full h-full object-cover">
                             </div>
                             <h4 class="text-lg font-black text-ht-navy mb-1">{{ $development->consultant->name }}</h4>
                             <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">{{ __('properties.consultant_title') ?? 'Consultor' }}</p>

@@ -63,8 +63,8 @@
                                 selectedId: '{{ $development->consultant_id }}', 
                                 selectedName: '{{ $development->consultant ? $development->consultant->name : 'Selecione um Consultor' }}',
                                 options: {{ $consultants->map(function($c) {
-                                    $photoPath = ($c->photo && file_exists(public_path('img/team/'.$c->photo))) 
-                                        ? asset('img/team/'.$c->photo) 
+                                    $photoPath = ($c->photo && file_exists(public_path('storage/'.$c->photo))) 
+                                        ? asset('storage/'.$c->photo) 
                                         : 'https://ui-avatars.com/api/?name='.urlencode($c->name).'&color=7F9CF5&background=EBF4FF';
                                     
                                     return [

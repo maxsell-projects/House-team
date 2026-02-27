@@ -62,7 +62,7 @@
                                 search: '', 
                                 selectedId: '', 
                                 selectedName: 'Selecione um Consultor',
-                                options: {{ $consultants->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'photo' => asset('img/team/'.$c->photo)])->toJson() }}
+                                options: {{ $consultants->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'photo' => $c->photo ? asset('storage/'.$c->photo) : null])->toJson() }}
                              }" 
                              class="relative z-50">
                             
