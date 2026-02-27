@@ -53,6 +53,56 @@
                         </div>
                     </div>
 
+                    {{-- DROPDOWN DE CONSULTORES --}}
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Consultor Responsável</label>
+                        
+                        <div x-data="{ 
+                                open: false, 
+                                search: '', 
+                                selectedId: '', 
+                                selectedName: 'Selecione um Consultor',
+                                options: {{ $consultants->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'photo' => asset('img/team/'.$c->photo)])->toJson() }}
+                             }" 
+                             class="relative z-50">
+                            
+                            <input type="hidden" name="consultant_id" :value="selectedId">
+
+                            <button type="button" 
+                                    @click="open = !open" 
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-left flex items-center justify-between focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all">
+                                <span x-text="selectedName" :class="selectedId ? 'text-ht-navy' : 'text-slate-400'"></span>
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div x-show="open" 
+                                 @click.away="open = false"
+                                 class="absolute top-full left-0 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl max-h-60 overflow-y-auto z-50 p-2"
+                                 style="display: none;">
+                                
+                                <div class="px-2 pb-2 mb-2 border-b border-slate-100">
+                                    <input x-model="search" 
+                                           type="text" 
+                                           class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-ht-blue" 
+                                           placeholder="Pesquisar nome...">
+                                </div>
+
+                                <template x-for="option in options.filter(i => i.name.toLowerCase().includes(search.toLowerCase()))" :key="option.id">
+                                    <div @click="selectedId = option.id; selectedName = option.name; open = false"
+                                         class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                                        <img :src="option.photo" class="w-8 h-8 rounded-full object-cover border border-slate-200" onerror="this.src='https://ui-avatars.com/api/?name=User&color=7F9CF5&background=EBF4FF'">
+                                        <span class="text-sm font-medium text-ht-navy" x-text="option.name"></span>
+                                    </div>
+                                </template>
+                                
+                                <div x-show="options.filter(i => i.name.toLowerCase().includes(search.toLowerCase())).length === 0" class="p-3 text-xs text-slate-400 text-center">
+                                    Nenhum consultor encontrado.
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1 ml-1">Se vazio, usará os contatos padrão nas páginas.</p>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Estado da Obra</label>
@@ -87,11 +137,18 @@
                                 <option value="C" {{ old('energy_rating') == 'C' ? 'selected' : '' }}>C</option>
                             </select>
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Iframe do Google Maps (Localização)</label>
-                            <input type="text" name="latitude" value="{{ old('latitude') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="<iframe src=...>">
-                            <p class="text-[10px] text-slate-400 mt-1 ml-1">Cole o código de incorporação do Maps aqui.</p>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Latitude</label>
+                            <input type="text" id="lat-input" name="latitude" value="{{ old('latitude') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="Ex: 41.1579">
                         </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Longitude</label>
+                            <input type="text" id="lng-input" name="longitude" value="{{ old('longitude') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all" placeholder="Ex: -8.6291">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Localização no Mapa (Clique para preencher as coordenadas automaticamente)</label>
+                        <div id="development-map-picker" class="w-full h-80 rounded-xl border border-slate-200 shadow-sm z-10" style="z-index: 10;"></div>
                     </div>
                 </div>
             </div>
@@ -141,9 +198,34 @@
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="text-lg font-bold text-ht-navy mb-6 flex items-center gap-2">
                     <span class="w-8 h-8 rounded-full bg-ht-blue text-white flex items-center justify-center text-xs">4</span>
-                    Descrição
+                    Descrição Principal
                 </h3>
                 <textarea name="description" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all resize-y">{{ old('description') }}</textarea>
+            </div>
+
+            <!-- 4.1 O Bairro -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold text-ht-navy mb-6 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-ht-blue text-white flex items-center justify-center text-xs">4.1</span>
+                    O Bairro
+                </h3>
+                
+                <div class="mb-6">
+                    <label class="block text-xs font-bold uppercase tracking-wide text-ht-navy mb-2 ml-1">Descrição da Região</label>
+                    <textarea name="neighborhood_description" rows="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all resize-y" placeholder="Descreva os destaques da região...">{{ old('neighborhood_description') }}</textarea>
+                </div>
+
+                <div class="p-6 bg-slate-50 border border-dashed border-slate-300 rounded-xl hover:bg-slate-100 transition-colors">
+                    <input type="hidden" id="neighborhood_images_order" name="neighborhood_images_order" value="">
+                    
+                    <label class="block text-sm font-bold text-ht-navy mb-2 ml-2">Galeria O Bairro</label>
+                    <input type="file" id="neighborhood-gallery-input" name="neighborhood_gallery[]" multiple accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-ht-navy file:text-white hover:file:bg-slate-700 cursor-pointer">
+                    <p class="text-[10px] text-slate-400 mt-2 ml-2 font-bold italic">Selecione e arraste para reordenar as imagens do bairro.</p>
+
+                    <div id="neighborhood-gallery-preview" class="grid grid-cols-3 md:grid-cols-5 gap-4 mt-6">
+                        {{-- Preview via JS --}}
+                    </div>
+                </div>
             </div>
 
             <!-- 5. Frações (Alpine JS Dynamics) -->
@@ -171,6 +253,7 @@
                                 <th class="p-3">Estacionamentos</th>
                                 <th class="p-3">ID Remax</th>
                                 <th class="p-3">Preço (€)</th>
+                                <th class="p-3">Planta</th>
                                 <th class="p-3">Status</th>
                                 <th class="p-3 text-center rounded-tr-lg">Ação</th>
                             </tr>
@@ -187,6 +270,9 @@
                                     <td class="p-2"><input type="number" :name="`fractions[${index}][parking_spaces]`" x-model="frac.parking" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all bg-white shadow-sm"></td>
                                     <td class="p-2"><input type="text" :name="`fractions[${index}][remax_id]`" x-model="frac.remax" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all bg-white shadow-sm"></td>
                                     <td class="p-2"><input type="number" step="0.01" :name="`fractions[${index}][price]`" x-model="frac.price" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all bg-white shadow-sm"></td>
+                                    <td class="p-2">
+                                        <input type="file" :name="`fractions[${index}][floor_plan]`" accept=".pdf,.png,.jpg,.jpeg" class="w-full text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-ht-blue file:text-white hover:file:bg-blue-600">
+                                    </td>
                                     <td class="p-2">
                                         <select :name="`fractions[${index}][status]`" x-model="frac.status" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all bg-white shadow-sm">
                                             <option value="Disponível">Disponível</option>
@@ -215,61 +301,120 @@
         </form>
     </div>
 
-    {{-- Script TUNADO com SortableJS e DataTransfer --}}
+    {{-- Scripts para Map Picker e Galerias --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const input = document.getElementById('gallery-input');
-            const previewContainer = document.getElementById('gallery-preview');
+            // -- 1. Map Picker Setup --
+            const latInput = document.getElementById('lat-input');
+            const lngInput = document.getElementById('lng-input');
             
-            new Sortable(previewContainer, {
-                animation: 150,
-                ghostClass: 'opacity-50',
-                onEnd: function() {
-                    updateFileInput(); 
+            let initLat = latInput && latInput.value ? parseFloat(latInput.value) : 39.3999;
+            let initLng = lngInput && lngInput.value ? parseFloat(lngInput.value) : -8.2245;
+            let initZoom = latInput && latInput.value ? 13 : 6;
+
+            const map = L.map('development-map-picker').setView([initLat, initLng], initZoom);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            let marker = null;
+            if (latInput && latInput.value && lngInput && lngInput.value) {
+                marker = L.marker([initLat, initLng]).addTo(map);
+            }
+
+            map.on('click', function(e) {
+                const lat = e.latlng.lat.toFixed(6);
+                const lng = e.latlng.lng.toFixed(6);
+                
+                if (latInput) latInput.value = lat;
+                if (lngInput) lngInput.value = lng;
+                
+                if (marker) {
+                    marker.setLatLng(e.latlng);
+                } else {
+                    marker = L.marker(e.latlng).addTo(map);
                 }
             });
 
-            input.addEventListener('change', function() {
-                Array.from(this.files).forEach(file => {
-                    const div = document.createElement('div');
-                    div.className = "relative h-24 w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 group cursor-move hover:border-ht-blue transition-all bg-white";
-                    
-                    div.file = file; 
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        div.innerHTML = `
-                            <img src="${e.target.result}" class="h-full w-full object-cover pointer-events-none">
-                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                            <button type="button" class="remove-btn absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">
-                                &times;
-                            </button>
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] p-1 truncate text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                ${file.name}
-                            </div>
-                        `;
-
-                        div.querySelector('.remove-btn').addEventListener('click', function() {
-                            div.remove();
-                            updateFileInput(); 
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                    previewContainer.appendChild(div);
-                });
-                updateFileInput();
-            });
-
-            function updateFileInput() {
-                const dt = new DataTransfer();
-                const previewItems = previewContainer.children;
-                for (let i = 0; i < previewItems.length; i++) {
-                    if (previewItems[i].file) {
-                        dt.items.add(previewItems[i].file);
+            function updateMapFromInput() {
+                if (latInput.value && lngInput.value) {
+                    const lat = parseFloat(latInput.value);
+                    const lng = parseFloat(lngInput.value);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        const newLatLng = new L.LatLng(lat, lng);
+                        if (marker) {
+                            marker.setLatLng(newLatLng);
+                        } else {
+                            marker = L.marker(newLatLng).addTo(map);
+                        }
+                        map.setView(newLatLng, 13);
                     }
                 }
-                input.files = dt.files;
             }
+            if (latInput) latInput.addEventListener('input', updateMapFromInput);
+            if (lngInput) lngInput.addEventListener('input', updateMapFromInput);
+
+            // -- 2. Reusable Gallery Preview Setup --
+            function setupGalleryPreview(inputId, previewContainerId) {
+                const input = document.getElementById(inputId);
+                const previewContainer = document.getElementById(previewContainerId);
+                
+                if (!input || !previewContainer) return;
+
+                new Sortable(previewContainer, {
+                    animation: 150,
+                    ghostClass: 'opacity-50',
+                    onEnd: function() {
+                        updateFileInput(); 
+                    }
+                });
+
+                input.addEventListener('change', function() {
+                    Array.from(this.files).forEach(file => {
+                        const div = document.createElement('div');
+                        div.className = "relative h-24 w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 group cursor-move hover:border-ht-blue transition-all bg-white";
+                        
+                        div.file = file; 
+
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            div.innerHTML = `
+                                <img src="${e.target.result}" class="h-full w-full object-cover pointer-events-none">
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                                <button type="button" class="remove-btn absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">&times;</button>
+                                <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] p-1 truncate text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    ${file.name}
+                                </div>
+                            `;
+
+                            div.querySelector('.remove-btn').addEventListener('click', function() {
+                                div.remove();
+                                updateFileInput(); 
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                        previewContainer.appendChild(div);
+                    });
+                    updateFileInput();
+                });
+
+                function updateFileInput() {
+                    const dt = new DataTransfer();
+                    const previewItems = previewContainer.children;
+                    for (let i = 0; i < previewItems.length; i++) {
+                        if (previewItems[i].file) {
+                            dt.items.add(previewItems[i].file);
+                        }
+                    }
+                    input.files = dt.files;
+                }
+            }
+
+            setupGalleryPreview('gallery-input', 'gallery-preview');
+            setupGalleryPreview('neighborhood-gallery-input', 'neighborhood-gallery-preview');
         });
 
         function fractionsManager() {

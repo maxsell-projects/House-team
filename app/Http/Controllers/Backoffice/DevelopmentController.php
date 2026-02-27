@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Development;
 use App\Models\DevelopmentFraction;
 use App\Models\DevelopmentPhoto;
+use App\Models\DevelopmentNeighborhoodPhoto;
+use App\Models\Consultant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -40,7 +42,8 @@ class DevelopmentController extends Controller
 
     public function create()
     {
-        return view('admin.developments.create');
+        $consultants = Consultant::where('is_active', true)->orderBy('name')->get();
+        return view('admin.developments.create', compact('consultants'));
     }
 
     public function store(Request $request)
@@ -48,12 +51,14 @@ class DevelopmentController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'order' => 'nullable|integer',
+            'consultant_id' => 'nullable|exists:consultants,id',
             'status' => 'nullable|string',
             'typologies' => 'nullable|string',
             'areas' => 'nullable|string',
             'built_year' => 'nullable|string',
             'energy_rating' => 'nullable|string',
             'description' => 'nullable|string',
+            'neighborhood_description' => 'nullable|string',
             'latitude' => 'nullable|string',
             'longitude' => 'nullable|string',
             
@@ -65,9 +70,14 @@ class DevelopmentController extends Controller
             // Gallery
             'gallery' => 'nullable|array',
             'gallery.*' => 'image|max:20480',
+
+            // Neighborhood Gallery
+            'neighborhood_gallery' => 'nullable|array',
+            'neighborhood_gallery.*' => 'image|max:20480',
             
             // Fractions Array
             'fractions' => 'nullable|array',
+            'fractions.*.floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $data['slug'] = Str::slug($data['title']) . '-' . time();
@@ -106,6 +116,20 @@ class DevelopmentController extends Controller
             }
         }
 
+        // Upload Neighborhood Gallery
+        if ($request->hasFile('neighborhood_gallery')) {
+            foreach ($request->file('neighborhood_gallery') as $index => $image) {
+                if ($image->isValid()) {
+                    $path = $image->store('developments/neighborhood', 'public');
+                    DevelopmentNeighborhoodPhoto::create([
+                        'development_id' => $development->id,
+                        'path' => $path,
+                        'order' => $index
+                    ]);
+                }
+            }
+        }
+
         // Handle Fractions (assuming an array coming from JS)
         if ($request->has('fractions') && is_array($request->fractions)) {
             foreach ($request->fractions as $frac) {
@@ -124,9 +148,9 @@ class DevelopmentController extends Controller
                         'status' => $frac['status'] ?? 'Disponível',
                     ];
                     
-                    // Handle fraction floor plan specifically here if needed.
-                    // Usually file arrays are separate or base64 encoded strings in a complex array.
-                    // For now keeping simple.
+                    if (isset($frac['floor_plan']) && $frac['floor_plan'] instanceof \Illuminate\Http\UploadedFile && $frac['floor_plan']->isValid()) {
+                        $fracData['floor_plan_path'] = $frac['floor_plan']->store('developments/fractions', 'public');
+                    }
                     
                     DevelopmentFraction::create($fracData);
                 }
@@ -138,8 +162,9 @@ class DevelopmentController extends Controller
 
     public function edit(Development $development)
     {
-        $development->load(['photos', 'fractions']);
-        return view('admin.developments.edit', compact('development'));
+        $development->load(['photos', 'neighborhoodPhotos', 'fractions', 'consultant']);
+        $consultants = Consultant::where('is_active', true)->orderBy('name')->get();
+        return view('admin.developments.edit', compact('development', 'consultants'));
     }
 
     public function update(Request $request, Development $development)
@@ -147,12 +172,14 @@ class DevelopmentController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'order' => 'nullable|integer',
+            'consultant_id' => 'nullable|exists:consultants,id',
             'status' => 'nullable|string',
             'typologies' => 'nullable|string',
             'areas' => 'nullable|string',
             'built_year' => 'nullable|string',
             'energy_rating' => 'nullable|string',
             'description' => 'nullable|string',
+            'neighborhood_description' => 'nullable|string',
             'latitude' => 'nullable|string',
             'longitude' => 'nullable|string',
             
@@ -166,9 +193,15 @@ class DevelopmentController extends Controller
             'gallery.*' => 'image|max:20480',
             'images_order' => 'nullable|string', 
             'cover_image_id' => 'nullable|exists:development_photos,id',
+
+            // Neighborhood Photos
+            'neighborhood_gallery' => 'nullable|array',
+            'neighborhood_gallery.*' => 'image|max:20480',
+            'neighborhood_images_order' => 'nullable|string', 
             
             // Fractions
             'fractions' => 'nullable|array',
+            'fractions.*.floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         if ($development->title !== $data['title']) {
@@ -234,6 +267,12 @@ class DevelopmentController extends Controller
         // Simple strategy: delete missing fractions by id loop, update existing, create new
         if ($request->has('fractions')) {
             $keptFractionIds = collect($request->fractions)->filter(fn($f) => isset($f['id']))->pluck('id')->toArray();
+            
+            // Delete missing fraction floor plans from storage
+            $fractionsToDelete = $development->fractions()->whereNotIn('id', $keptFractionIds)->get();
+            foreach ($fractionsToDelete as $oldFrac) {
+                if ($oldFrac->floor_plan_path) Storage::disk('public')->delete($oldFrac->floor_plan_path);
+            }
             $development->fractions()->whereNotIn('id', $keptFractionIds)->delete();
             
             foreach ($request->fractions as $frac) {
@@ -259,6 +298,40 @@ class DevelopmentController extends Controller
                     }
                 }
             }
+        }
+
+        // --- Neighborhood Gallery Handling ---
+        $existingNeighborhoodOrderIds = $request->filled('neighborhood_images_order') 
+            ? explode(',', $request->neighborhood_images_order) 
+            : [];
+
+        // Delete photos removed in UI
+        $neighborhoodImagesToDelete = $development->neighborhoodPhotos()->whereNotIn('id', $existingNeighborhoodOrderIds)->get();
+        foreach ($neighborhoodImagesToDelete as $img) {
+            Storage::disk('public')->delete($img->path);
+            $img->delete();
+        }
+
+        // Reorder
+        foreach ($existingNeighborhoodOrderIds as $index => $id) {
+            DevelopmentNeighborhoodPhoto::where('id', $id)->update(['order' => $index]);
+        }
+
+        // Append new neighborhood photos
+        if ($request->hasFile('neighborhood_gallery')) {
+            $lastNeighborhoodOrder = DevelopmentNeighborhoodPhoto::where('development_id', $development->id)->max('order') ?? -1;
+
+            foreach ($request->file('neighborhood_gallery') as $image) {
+                if ($image->isValid()) {
+                    $lastNeighborhoodOrder++;
+                    $path = $image->store('developments/neighborhood', 'public');
+                    DevelopmentNeighborhoodPhoto::create([
+                        'development_id' => $development->id,
+                        'path' => $path,
+                        'order' => $lastNeighborhoodOrder
+                    ]);
+                }
+            }
         } else {
             // Delete all if empty sent
             $development->fractions()->delete();
@@ -277,7 +350,15 @@ class DevelopmentController extends Controller
             Storage::disk('public')->delete($image->path);
         }
         
-        // Fractions will be deleted automatically via cascade constraint on DB 
+        foreach ($development->neighborhoodPhotos as $image) {
+            Storage::disk('public')->delete($image->path);
+        }
+        
+        foreach ($development->fractions as $frac) {
+            if ($frac->floor_plan_path) Storage::disk('public')->delete($frac->floor_plan_path);
+        }
+        
+        // Fractions and photos will be deleted automatically via cascade constraint on DB 
         $development->delete();
         return back()->with('success', 'Empreendimento removido permanentemente.');
     }

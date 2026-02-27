@@ -8,10 +8,10 @@ class Development extends Model
 {
     protected $fillable = [
         'title', 'slug', 'status', 'typologies', 'areas', 
-        'built_year', 'energy_rating', 'description', 
+        'built_year', 'energy_rating', 'description', 'neighborhood_description',
         'latitude', 'longitude', 'brochure_path', 
         'finishes_map_path', 'development_sheet_path', 
-        'order', 'is_visible'
+        'order', 'is_visible', 'consultant_id'
     ];
 
     protected $casts = [
@@ -37,5 +37,15 @@ class Development extends Model
     public function coverPhoto()
     {
         return $this->hasOne(DevelopmentPhoto::class)->where('is_cover', true);
+    }
+
+    public function neighborhoodPhotos()
+    {
+        return $this->hasMany(DevelopmentNeighborhoodPhoto::class)->orderBy('order', 'asc');
+    }
+
+    public function consultant()
+    {
+        return $this->belongsTo(Consultant::class);
     }
 }

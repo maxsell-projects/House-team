@@ -35,11 +35,20 @@ class DevelopmentController extends Controller
     {
         $development = Development::with(['photos' => function ($query) {
                 $query->orderBy('order');
-            }, 'fractions'])
+            }, 'fractions', 'neighborhoodPhotos' => function($query) {
+                $query->orderBy('order');
+            }])
             ->where('slug', $slug)
             ->where('is_visible', true)
             ->firstOrFail();
 
-        return view('front.developments.show', compact('development'));
+        $recommended = Development::with(['photos' => function($q) { $q->where('is_cover', true)->orWhere('order', 0); }])
+            ->where('id', '!=', $development->id)
+            ->where('is_visible', true)
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
+
+        return view('front.developments.show', compact('development', 'recommended'));
     }
 }

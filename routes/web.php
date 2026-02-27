@@ -74,6 +74,7 @@ Route::get('/imoveis/{property:slug}', [PropertyController::class, 'show'])->nam
 // --- EMPREENDIMENTOS (Site Principal) ---
 Route::get('/empreendimentos', [App\Http\Controllers\Front\DevelopmentController::class, 'index'])->name('developments.index');
 Route::get('/empreendimentos/{slug}', [App\Http\Controllers\Front\DevelopmentController::class, 'show'])->name('developments.show');
+Route::post('/empreendimentos/contato-fracao', [ToolsController::class, 'fractionContact'])->name('front.developments.fractionContact');
 
 // --- FERRAMENTAS (Site Principal - Views Padrão) ---
 Route::get('/ferramentas/simulador-credito', function () { return view('tools.credit'); })->name('tools.credit');

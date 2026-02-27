@@ -328,6 +328,78 @@ class ToolsController extends Controller
     }
 
     // =========================================================================
+    // CONTACTO FRAÇÃO (EMPREENDIMENTOS)
+    // =========================================================================
+    public function fractionContact(Request $request, $domain = null)
+    {
+        $consultant = $this->getContext($domain);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'development_title' => 'required|string',
+            'fraction_ref' => 'required|string',
+            'remax_id' => 'nullable|string',
+        ]);
+
+        $subject = 'Interesse na Fração ' . $data['fraction_ref'] . ' - ' . $data['development_title'];
+
+        // 1. Envio Email Admin/Consultor
+        try {
+            $adminEmail = config('mail.from.address'); 
+            $primaryEmail = $consultant ? $consultant->email : $adminEmail;
+
+            // Prepare a generic structure simulating the 'emails.contact-lead' view variables
+            $contactData = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'subject' => $subject,
+                'message' => "Gostaria de obter mais informações sobre a Fração " . $data['fraction_ref'] . 
+                             " (ID Remax: " . ($data['remax_id'] ?? 'N/A') . ") do Empreendimento " . $data['development_title'] . "."
+            ];
+
+            Mail::send('emails.contact-lead', ['data' => $contactData], function ($message) use ($primaryEmail, $adminEmail, $subject, $consultant) {
+                $message->from(config('mail.from.address'), config('mail.from.name'));
+                $message->to($primaryEmail);
+                
+                if ($consultant) {
+                    $message->bcc($adminEmail);
+                    $message->subject("[House Team - {$consultant->name}] " . $subject);
+                } else {
+                    $message->subject('[House Team] ' . $subject);
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error('Erro Email Contacto Fração: ' . $e->getMessage());
+        }
+
+        // 2. Prepara dados para a View do CRM
+        $info = [
+            'TIPO' => 'CONTACTO FRAÇÃO (EMPREENDIMENTO)',
+            'Empreendimento' => $data['development_title'],
+            'Fração' => $data['fraction_ref'],
+            'ID Remax' => $data['remax_id'] ?? 'Não informado'
+        ];
+
+        // 3. Processa
+        $this->processCrmSubmission(
+            [
+                'lead_name' => $data['name'],
+                'lead_email' => $data['email'],
+                'lead_phone' => $data['phone']
+            ], 
+            $info, 
+            'Formulário Empreendimentos', 
+            'buyer', 
+            $consultant
+        );
+
+        return back()->with('success', 'Mensagem enviada com sucesso! Entraremos em contacto em breve.');
+    }
+
+    // =========================================================================
     // MÉTODO CENTRALIZADOR: GERA VIEW LOG + ENVIA CRM
     // =========================================================================
     private function processCrmSubmission($contactData, $infoData, $tagSource, $pipelineType, $consultant, $monetaryValue = null)
