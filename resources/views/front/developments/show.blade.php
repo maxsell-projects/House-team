@@ -172,6 +172,7 @@
                         return [
                             'id' => $f->id,
                             'ref' => $f->ref,
+                            'block' => $f->block,
                             'floor' => $f->floor,
                             'typology' => $f->typology,
                             'abp' => $f->abp,
@@ -264,7 +265,7 @@
                                              }"
                                              x-text="frac.ref || '-'"></div>
                                         <div>
-                                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{{ __('developments.floor') }} <span x-text="frac.floor || '-'"></span></p>
+                                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{{ __('developments.floor') }} <span x-text="frac.floor || '-'"></span> &bull; {{ __('developments.block') }} <span x-text="frac.block || '-'"></span></p>
                                             <p class="font-black text-ht-navy text-lg" x-text="frac.typology || '-'"></p>
                                         </div>
                                     </div>
@@ -314,10 +315,12 @@
                             <thead>
                                 <tr class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400">
                                     <th class="py-4 px-4 rounded-l-xl">{{ __('developments.table_ref') }}</th>
+                                    <th class="py-4 px-4">{{ __('developments.table_block') }}</th>
                                     <th class="py-4 px-4">{{ __('developments.table_floor') }}</th>
                                     <th class="py-4 px-4">{{ __('developments.table_typology') }}</th>
                                     <th class="py-4 px-4">{{ __('developments.table_abp') }}</th>
                                     <th class="py-4 px-4">{{ __('developments.table_balcony') }}</th>
+                                    <th class="py-4 px-4">{{ __('developments.parking') }}</th>
                                     <th class="py-4 px-4">{{ __('developments.table_price') }}</th>
                                     <th class="py-4 px-4 rounded-r-xl">{{ __('developments.table_status') }}</th>
                                 </tr>
@@ -326,10 +329,12 @@
                                 <template x-for="frac in filteredFractions" :key="frac.id">
                                     <tr @click="openFrac(frac)" class="hover:bg-slate-50 transition-colors group">
                                         <td class="py-4 px-4 font-black text-ht-navy" x-text="frac.ref || '-'"></td>
+                                        <td class="py-4 px-4 text-slate-500" x-text="frac.block || '-'"></td>
                                         <td class="py-4 px-4 text-slate-500" x-text="frac.floor || '-'"></td>
                                         <td class="py-4 px-4 text-slate-500" x-text="frac.typology || '-'"></td>
                                         <td class="py-4 px-4 text-slate-500" x-text="frac.abp ? parseFloat(frac.abp) + ' m²' : '-'"></td>
                                         <td class="py-4 px-4 text-slate-500" x-text="frac.balcony_area ? parseFloat(frac.balcony_area) + ' m²' : '-'"></td>
+                                        <td class="py-4 px-4 text-slate-500" x-text="frac.parking || '-'"></td>
                                         <td class="py-4 px-4 font-bold" :class="frac.price ? 'text-ht-navy' : 'text-slate-400'" x-text="frac.price_formatted"></td>
                                         <td class="py-4 px-4">
                                             <span x-show="frac.status === 'Disponível'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700">{{ __('developments.status_available') }}</span>
@@ -392,6 +397,10 @@
                                             <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                                 <span class="block text-[10px] uppercase text-slate-400 font-bold">{{ __('developments.typology') }}</span>
                                                 <span class="font-bold text-ht-navy" x-text="activeFrac?.typology || '-'"></span>
+                                            </div>
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                <span class="block text-[10px] uppercase text-slate-400 font-bold">{{ __('developments.block') }}</span>
+                                                <span class="font-bold text-ht-navy" x-text="activeFrac?.block || '-'"></span>
                                             </div>
                                             <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                                 <span class="block text-[10px] uppercase text-slate-400 font-bold">{{ __('developments.floor') }}</span>
@@ -586,7 +595,7 @@
                         @if($development->consultant_id && $development->consultant)
                         <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center text-center mt-6">
                             <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-ht-accent mb-4 shadow-lg">
-                                <img src="{{ $development->consultant->photo ? asset('storage/'.$development->consultant->photo) : 'https://ui-avatars.com/api/?name='.urlencode($development->consultant->name).'&color=7F9CF5&background=EBF4FF' }}" class="w-full h-full object-cover">
+                                <img src="{{ $development->consultant->photo ? $development->consultant->image_url : 'https://ui-avatars.com/api/?name='.urlencode($development->consultant->name).'&color=7F9CF5&background=EBF4FF' }}" class="w-full h-full object-cover">
                             </div>
                             <h4 class="text-lg font-black text-ht-navy mb-1">{{ $development->consultant->name }}</h4>
                             <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">{{ __('properties.consultant_title') ?? 'Consultor' }}</p>
