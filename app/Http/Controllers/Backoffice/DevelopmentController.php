@@ -332,9 +332,6 @@ class DevelopmentController extends Controller
                     ]);
                 }
             }
-        } else {
-            // Delete all if empty sent
-            $development->fractions()->delete();
         }
 
         return redirect()->route('admin.developments.index')->with('success', 'Empreendimento atualizado com sucesso!');
