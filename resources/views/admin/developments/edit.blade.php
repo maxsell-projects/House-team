@@ -306,7 +306,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <template x-for="(frac, index) in fractions" :key="index">
+                            <template x-for="(frac, index) in fractions" :key="frac._uid">
                                 <tr class="group hover:bg-slate-50 transition-colors">
                                     <input type="hidden" :name="`fractions[${index}][id]`" x-model="frac.id">
                                     <td class="p-2"><input type="text" :name="`fractions[${index}][ref]`" x-model="frac.ref" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-ht-blue focus:ring-1 focus:ring-ht-blue transition-all bg-white shadow-sm" placeholder="Ex: A"></td>
@@ -582,10 +582,17 @@
 
         // Initialize Fractions from Laravel DB
         function fractionsManager() {
+            let _uidCounter = 0;
+            const existingFractions = {!! json_encode($development->fractions) !!} || [];
+            // Assign unique _uid to each existing fraction for Alpine :key tracking
+            existingFractions.forEach(f => f._uid = _uidCounter++);
+            
             return {
-                fractions: {!! json_encode($development->fractions) !!} || [],
+                fractions: existingFractions,
+                _nextUid: _uidCounter,
                 addFraction() {
                     this.fractions.push({ 
+                        _uid: this._nextUid++,
                         id: null, ref: '', block: '', floor: '', typology: '', 
                         abp: '', balcony_area: '', parking_spaces: '', remax_id: '', price: '', status: 'Disponível'
                     });

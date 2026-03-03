@@ -265,8 +265,8 @@ class DevelopmentController extends Controller
 
         // --- Fractions Handling ---
         // Simple strategy: delete missing fractions by id loop, update existing, create new
-        if ($request->has('fractions')) {
-            $keptFractionIds = collect($request->fractions)->filter(fn($f) => isset($f['id']))->pluck('id')->toArray();
+        if ($request->has('fractions') && is_array($request->fractions) && count($request->fractions) > 0) {
+            $keptFractionIds = collect($request->fractions)->filter(fn($f) => isset($f['id']) && $f['id'])->pluck('id')->toArray();
             
             // Delete missing fraction floor plans from storage
             $fractionsToDelete = $development->fractions()->whereNotIn('id', $keptFractionIds)->get();
@@ -298,6 +298,12 @@ class DevelopmentController extends Controller
                     }
                 }
             }
+        } else {
+            // All fractions were removed — delete them all
+            foreach ($development->fractions as $oldFrac) {
+                if ($oldFrac->floor_plan_path) Storage::disk('public')->delete($oldFrac->floor_plan_path);
+            }
+            $development->fractions()->delete();
         }
 
         // --- Neighborhood Gallery Handling ---
