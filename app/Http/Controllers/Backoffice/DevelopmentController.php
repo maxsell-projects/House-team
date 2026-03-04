@@ -291,6 +291,18 @@ class DevelopmentController extends Controller
                         'status' => $frac['status'] ?? 'Disponível',
                     ];
 
+                    if (isset($frac['floor_plan']) && $frac['floor_plan'] instanceof \Illuminate\Http\UploadedFile && $frac['floor_plan']->isValid()) {
+                        $fracData['floor_plan_path'] = $frac['floor_plan']->store('developments/fractions', 'public');
+                        
+                        // Remover a planta antiga caso exista e estejamos a atualizar
+                        if (isset($frac['id']) && $frac['id']) {
+                            $oldFracModel = DevelopmentFraction::find($frac['id']);
+                            if ($oldFracModel && $oldFracModel->floor_plan_path) {
+                                Storage::disk('public')->delete($oldFracModel->floor_plan_path);
+                            }
+                        }
+                    }
+
                     if (isset($frac['id']) && $frac['id']) {
                         DevelopmentFraction::where('id', $frac['id'])->update($fracData);
                     } else {

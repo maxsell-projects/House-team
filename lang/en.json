@@ -605,5 +605,7 @@
     "Lançamento": "Launch",
     "Em planta": "Off-Plan",
     "Em Planta": "Off-Plan",
-    "Concluído": "Completed"
+    "Concluído": "Completed",
+    "developments.floor_plan_label": "Floor Plan",
+    "developments.view_full_size": "View full size"
 }

@@ -605,5 +605,7 @@
   "Lançamento": "Lançamento",
   "Em planta": "Em Planta",
   "Em Planta": "Em Planta",
-  "Concluído": "Concluído"
+  "Concluído": "Concluído",
+  "developments.floor_plan_label": "Planta da Fração",
+  "developments.view_full_size": "Ver tamanho real"
 }
