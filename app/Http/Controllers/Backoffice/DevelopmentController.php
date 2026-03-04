@@ -63,21 +63,21 @@ class DevelopmentController extends Controller
             'longitude' => 'nullable|string',
             
             // Files
-            'brochure' => 'nullable|file|mimes:pdf,pdf,doc,docx|max:20480',
-            'finishes_map' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
-            'development_sheet' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
+            'brochure' => 'nullable|file|mimes:pdf,pdf,doc,docx|max:204800',
+            'finishes_map' => 'nullable|file|mimes:pdf,doc,docx|max:204800',
+            'development_sheet' => 'nullable|file|mimes:pdf,doc,docx|max:204800',
             
             // Gallery
             'gallery' => 'nullable|array',
-            'gallery.*' => 'image|max:20480',
+            'gallery.*' => 'image|max:204800',
 
             // Neighborhood Gallery
             'neighborhood_gallery' => 'nullable|array',
-            'neighborhood_gallery.*' => 'image|max:20480',
+            'neighborhood_gallery.*' => 'image|max:204800',
             
             // Fractions Array
             'fractions' => 'nullable|array',
-            'fractions.*.floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'fractions.*.floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:204800',
         ]);
 
         $data['slug'] = Str::slug($data['title']) . '-' . time();
@@ -184,24 +184,24 @@ class DevelopmentController extends Controller
             'longitude' => 'nullable|string',
             
             // Files 
-            'brochure' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
-            'finishes_map' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
-            'development_sheet' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
+            'brochure' => 'nullable|file|mimes:pdf,doc,docx|max:204800',
+            'finishes_map' => 'nullable|file|mimes:pdf,doc,docx|max:204800',
+            'development_sheet' => 'nullable|file|mimes:pdf,doc,docx|max:204800',
             
             // Photos
             'gallery' => 'nullable|array',
-            'gallery.*' => 'image|max:20480',
+            'gallery.*' => 'image|max:204800',
             'images_order' => 'nullable|string', 
             'cover_image_id' => 'nullable|exists:development_photos,id',
 
             // Neighborhood Photos
             'neighborhood_gallery' => 'nullable|array',
-            'neighborhood_gallery.*' => 'image|max:20480',
+            'neighborhood_gallery.*' => 'image|max:204800',
             'neighborhood_images_order' => 'nullable|string', 
             
             // Fractions
             'fractions' => 'nullable|array',
-            'fractions.*.floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'fractions.*.floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:204800',
         ]);
 
         if ($development->title !== $data['title']) {
